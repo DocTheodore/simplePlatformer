@@ -183,7 +183,11 @@ class GameObject {
 }
 const player = new GameObject('player', new Transform(20*config.size.tile, 0, 2, 3) ,new RectRenderer('#fff'));
 const ball = new GameObject('ball', new Transform(20, 20, 5, 5), new RectRenderer('#fff'));
-const ground = new GameObject('ground', new Transform(2*config.size.tile, 54*config.size.tile, 112, 5), new RectRenderer('#2f2'));
+const ground = new GameObject('ground', new Transform(2*config.size.tile, 54*config.size.tile, 112, 5), new RectRenderer('#222'));
+const wall = new GameObject('wall', new Transform(10*config.size.tile, 47*config.size.tile, 8, 12), new RectRenderer('#222'));
+const wall2 = new GameObject('wall2', new Transform(30*config.size.tile, 43*config.size.tile, 8, 16), new RectRenderer('#222'));
+const wall3= new GameObject('wall3', new Transform(50*config.size.tile, 47*config.size.tile, 8, 12), new RectRenderer('#222'));
+const wall4 = new GameObject('wall4', new Transform(70*config.size.tile, 47*config.size.tile, 8, 12), new RectRenderer('#222'));
 
 // Funções de fisica ========================
 function AABBcheck(objA, objB) {
