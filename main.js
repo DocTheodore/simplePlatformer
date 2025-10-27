@@ -244,7 +244,7 @@ function inputHandler(player) {
 	if (!player.transform.onGround) {
         player.transform.velY += gravity;
 		if(player.transform.velY > gravityLimit) player.transform.velY = gravityLimit;
-		console.log(player.transform.velY)
+		//console.log(player.transform.velY)
     } else {
         player.transform.velY = 0;
 		if(keylist.some(key => key === 'w')) {
