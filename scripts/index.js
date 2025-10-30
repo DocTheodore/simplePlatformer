@@ -7,8 +7,8 @@ const windowSize = {
     h:innerHeight
 }
 const windowTiles = {
-    x:Math.ceil(config.windowSize.w / tileSize),
-    y:Math.ceil(config.windowSize.h / tileSize),
+    x:Math.ceil(windowSize.w / tileSize),
+    y:Math.ceil(windowSize.h / tileSize),
 }
 const centerScreen = {
     x: Math.round(windowTiles.x / 2),
@@ -20,18 +20,14 @@ let fps = {shown: 0, count: 0}
 
 // Funções padrão
 function resize() {
-    windowSize = {
-        w:innerWidth,
-        h:innerHeight
-    }
-    windowTiles = {
-        x:Math.ceil(config.windowSize.w / tileSize),
-        y:Math.ceil(config.windowSize.h / tileSize),
-    }
-    centerScreen = {
-        x: Math.round(windowTiles.x / 2),
-        y: Math.round(windowTiles.y / 2),
-    }
+    windowSize.w = innerWidth;
+    windowSize.h = innerHeight;
+
+    windowTiles.x = Math.ceil(windowSize.w / tileSize);
+    windowTiles.y = Math.ceil(windowSize.h / tileSize);
+
+    centerScreen.x = Math.round(windowTiles.x / 2);
+    centerScreen.y = Math.round(windowTiles.y / 2);
 
     Renderer.ctx.canvas.width = windowSize.w;
     Renderer.ctx.canvas.height = windowSize.h;
@@ -39,16 +35,18 @@ function resize() {
 }
 window.onresize = function() {
     resize();
+    console.log(windowSize, windowTiles, centerScreen);
 }
 
 // Game start
 function gameStart() {
     context = document.getElementById("game").getContext("2d");
+    Renderer.ctx = context;
 	
 	setInterval(function() {
 		fps.shown = fps.count;
         fps.count = 0;
-        console.log(fps.shown);
+        //console.log(fps.shown);
 	}, 1000);
 }
 function gameLateStart() {
