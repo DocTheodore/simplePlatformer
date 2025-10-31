@@ -40,8 +40,13 @@ window.onresize = function() {
 
 // Game start
 function gameStart() {
+    // Renderização do canvas
     context = document.getElementById("game").getContext("2d");
     Renderer.ctx = context;
+    resize();
+
+    // Setup de eventos
+    InputHandler.init();
 	
 	setInterval(function() {
 		fps.shown = fps.count;
@@ -57,9 +62,24 @@ function gameLateStart() {
 function gameUpdate() {
     GameTime.Update();
     
+    /* console.log(
+        InputHandler.keyPressed,
+        InputHandler.keyClicked,
+        InputHandler.mousePressed,
+        InputHandler.mouseClicked,
+    ); */
 }
 function gameLateUpdate() {
+    InputHandler.lateUpdate();
 
+}
+
+// Game Render
+const teste = new Renderer(1, centerScreen, {w:1, h:2});
+function gameRender() {
+    Renderer.Clear();
+    
+    teste.Tile();
 }
 
 // =============================
@@ -72,7 +92,7 @@ function main() {
         gameLateUpdate();
 
         fps.count++;
-        //console.log(fps.count);
+        gameRender();
         requestAnimationFrame(mainLoop);
     }
     requestAnimationFrame(mainLoop)
