@@ -47,6 +47,7 @@ function gameStart() {
 
     // Setup de eventos
     InputHandler.init();
+    TileMap.init();
 	
 	setInterval(function() {
 		fps.shown = fps.count;
