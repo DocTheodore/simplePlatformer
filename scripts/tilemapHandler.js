@@ -1,11 +1,12 @@
 class TileMap {
 
-    static data = [];
+    static fileData = [];
+    static loaded = false;
 
     constructor () {}
 
-    static init () {
-        TileMap.load('data/tilemap_a.txt');
+    static async init () {
+        return TileMap.load('data/tilemap_a.txt');
     }
 
     static async load(filePath) {
@@ -14,11 +15,25 @@ class TileMap {
             if(!response.ok) {
                 throw new Error(`Erro de HTTP: ${response.status}`);
             }
-            const textData = await response.text();
-            return textData;
+            const fileData = await response.text();
+            TileMap.fileData = TileMap.parseTileMap(fileData);
+            TileMap.loaded = true;
+            return response;
         } catch(err) {
             console.log("Erro ao carregar o mapa: ", err);
             return null;
         }
+    }
+
+    static parseTileMap (text) {
+        const lines = text.trim().split('\n');
+        const tilemap = [];
+
+        for(const line of lines) {
+            const row = line.split(',').map(Number);
+            tilemap.push(row);
+        }
+
+        return tilemap;
     }
 }

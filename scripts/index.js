@@ -47,7 +47,9 @@ function gameStart() {
 
     // Setup de eventos
     InputHandler.init();
-    TileMap.init();
+    TileMap.init().then(() => {
+        console.log(TileMap.fileData);
+    });
 	
 	setInterval(function() {
 		fps.shown = fps.count;
@@ -56,7 +58,7 @@ function gameStart() {
 	}, 1000);
 }
 function gameLateStart() {
-
+    // console.log(TileMap.data);
 }
 
 // Game update
@@ -86,7 +88,7 @@ function gameRender() {
 // =============================
 function main() {
     gameStart();
-    gameLateStart();
+    setTimeout(() => gameLateStart(), 10);
 
     const mainLoop = () => {
         gameUpdate();
