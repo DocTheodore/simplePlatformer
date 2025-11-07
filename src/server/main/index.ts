@@ -1,0 +1,37 @@
+// server/index.ts
+import express from "express";
+import path from "path";
+import { createServer } from "http";
+import { Server } from "socket.io";
+import { getLocalIpAddress } from "../utils/ipaddress.js";
+
+const app = express();
+const server = createServer(app);
+const io = new Server(server);
+const SERVER_PORT = 3000;
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
+const __distDirName = path.join(__dirname, '../../../dist')
+
+app.use('/dist', express.static(__distDirName));
+app.use('/node_modules', express.static(path.join(__dirname, '../../node_modules')));
+app.use(express.static("public"));
+
+app.use((req, res, next) => {
+    console.log(`${req.method} ${req.url}`);
+    next();
+});
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, '../../public/index.html'));
+    console.log("Página carregada");
+});
+
+try{
+  server.listen(SERVER_PORT, () => {
+    console.clear();
+    console.log(__dirname);
+    console.log(__distDirName);
+    console.log(`Servidor rodando em http://${getLocalIpAddress()}:${SERVER_PORT}`);
+  });
+} catch (error) {
+  console.error("Erro ao iniciar o servidor:", error);
+}
