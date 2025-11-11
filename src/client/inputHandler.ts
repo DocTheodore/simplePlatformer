@@ -1,11 +1,11 @@
-class InputHandler {
+export class InputHandler {
     static mousePos = {x: 0, y:0};
-    static mousePressed = [];
-    static mouseClicked = [];
+    static mousePressed:number[] = [];
+    static mouseClicked:number[] = [];
     static tileSize = 16;
 
-    static keyPressed = [];
-    static keyClicked = [];
+    static keyPressed:string[] = [];
+    static keyClicked:string[] = [];
 
     constructor () {}
 

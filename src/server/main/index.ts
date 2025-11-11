@@ -10,9 +10,11 @@ const server = createServer(app);
 const io = new Server(server);
 const SERVER_PORT = 3000;
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
-const __distDirName = path.join(__dirname, '../../../dist')
+const __distDirName = path.join(__dirname, '../../../dist');
+const __distDataName = path.join(__dirname, '../../../data');
 
 app.use('/dist', express.static(__distDirName));
+app.use('/data', express.static(__distDataName));
 app.use('/node_modules', express.static(path.join(__dirname, '../../node_modules')));
 app.use(express.static("public"));
 

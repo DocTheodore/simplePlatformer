@@ -1,4 +1,4 @@
-class GameTime {
+export class GameTime {
     static _delta = 0;
     static _last = performance.now();
 

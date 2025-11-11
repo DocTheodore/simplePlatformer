@@ -1,15 +1,15 @@
-class TileMap {
+export class TileMap {
 
-    static fileData = [];
+    static fileData:any[] = [];
     static loaded = false;
 
     constructor () {}
 
     static async init () {
-        return TileMap.load('data/tilemap_a.txt');
+        return TileMap.load('./data/tilemap_a.txt');
     }
 
-    static async load(filePath) {
+    static async load(filePath:string) {
         try{
             const response = await fetch(filePath)
             if(!response.ok) {
@@ -25,7 +25,7 @@ class TileMap {
         }
     }
 
-    static parseTileMap (text) {
+    static parseTileMap (text:string) {
         const lines = text.trim().split('\n');
         const tilemap = [];
 
