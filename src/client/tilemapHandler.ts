@@ -1,3 +1,10 @@
+export interface tile {
+    x: number,
+    y:number,
+    tileId: number | null | undefined,
+    render: any
+}
+
 export class TileMap {
 
     static fileData:any[] = [];

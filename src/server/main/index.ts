@@ -9,13 +9,17 @@ const app = express();
 const server = createServer(app);
 const io = new Server(server);
 const SERVER_PORT = 3000;
+
+// Diretórios
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 const __distDirName = path.join(__dirname, '../../../dist');
 const __distDataName = path.join(__dirname, '../../../data');
+const __distNodeName = path.join(__dirname, '../../../node_modules');
 
+// Rotas
 app.use('/dist', express.static(__distDirName));
 app.use('/data', express.static(__distDataName));
-app.use('/node_modules', express.static(path.join(__dirname, '../../node_modules')));
+app.use('/node_modules', express.static(__distNodeName));
 app.use(express.static("public"));
 
 app.use((req, res, next) => {
@@ -30,8 +34,6 @@ app.get("/", (req, res) => {
 try{
   server.listen(SERVER_PORT, () => {
     console.clear();
-    console.log(__dirname);
-    console.log(__distDirName);
     console.log(`Servidor rodando em http://${getLocalIpAddress()}:${SERVER_PORT}`);
   });
 } catch (error) {

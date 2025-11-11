@@ -1,7 +1,7 @@
 import { Renderer } from "./render.js";
 import { GameTime } from "./gameTime.js";
 import { InputHandler } from "./inputHandler.js";
-import { TileMap } from "./tilemapHandler.js";
+import { TileMap, tile } from "./tilemapHandler.js";
 
 console.log('Hello world');
 
@@ -21,6 +21,7 @@ const centerScreen = {
 }
 
 const canvas = document.getElementById("game") as HTMLCanvasElement;
+const tilemapLocal:tile[] = [];
 let context = canvas.getContext("2d");
 let fps = {shown: 0, count: 0}
 
@@ -56,7 +57,19 @@ function gameStart() {
     // Setup de eventos
     InputHandler.init();
     TileMap.init().then(() => {
-        console.log(TileMap.fileData);
+        //console.log(TileMap.fileData);
+        TileMap.fileData.forEach((line:any, y:number) => {
+            line.forEach((col:any, x:number) => {
+                const tile = {
+                    x: x,
+                    y: y,
+                    tileId: col,
+                    render: new Renderer(0, {x, y}, {w:1, h:1}, col? '#999' : '#000')
+                }
+                console.log(tile);
+                tilemapLocal.push(tile);
+            });
+        });
     });
 	
 	setInterval(function() {
@@ -90,7 +103,9 @@ function gameLateUpdate() {
 function gameRender() {
     Renderer.Clear();
     
-    //teste.Tile();
+    tilemapLocal.forEach((tile) => {
+        tile.render.Tile();
+    })
 }
 
 // =============================
