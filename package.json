@@ -30,6 +30,7 @@
     "os": "^0.1.2",
     "pako": "^2.1.0",
     "path": "^0.12.7",
+    "simplex-noise": "^4.0.3",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1"
   },

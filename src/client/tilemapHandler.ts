@@ -1,3 +1,5 @@
+import { CHUNK_SIZE } from "../shared/constants.js";
+
 export interface tile {
     x: number,
     y:number,
@@ -9,6 +11,7 @@ export class TileMap {
 
     static fileData:any[] = [];
     static loaded = false;
+    static chunks = new Map<string, Uint8Array>();
 
     constructor () {}
 
@@ -42,5 +45,22 @@ export class TileMap {
         }
 
         return tilemap;
+    }
+
+    static setChunk(x: number, y: number, tiles: Uint8Array) {
+        const key = `${x}_${y}`;
+        this.chunks.set(key, tiles);
+    }
+
+    static getTile(worldX: number, worldY: number): number {
+        const xChunk = Math.floor(worldX / CHUNK_SIZE);
+        const yChunk = Math.floor(worldY / CHUNK_SIZE);
+        const key = `${xChunk}_${yChunk}`;
+        const chunk = this.chunks.get(key);
+        if (!chunk) return 0; // ar
+
+        const localX = worldX % CHUNK_SIZE;
+        const localY = worldY % CHUNK_SIZE;
+        return chunk[localY * CHUNK_SIZE + localX];
     }
 }

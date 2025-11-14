@@ -31,6 +31,14 @@ app.get("/", (req, res) => {
     console.log("Página carregada");
 });
 
+io.on('connection', (socket) => {
+  socket.emit("hello", "...");
+
+  socket.on("teste", () => {
+    console.log("Ouvindo cliente", socket.handshake.address.split('::ffff:')[1]);
+  })
+});
+
 try{
   server.listen(SERVER_PORT, () => {
     console.clear();

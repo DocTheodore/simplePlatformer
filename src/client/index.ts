@@ -2,6 +2,7 @@ import { Renderer } from "./render.js";
 import { GameTime } from "./gameTime.js";
 import { InputHandler } from "./inputHandler.js";
 import { TileMap, tile } from "./tilemapHandler.js";
+import { testeNet } from "./network/socket.js";
 
 console.log('Hello world');
 
@@ -66,8 +67,8 @@ function gameStart() {
                     tileId: col,
                     render: new Renderer(0, {x, y}, {w:1, h:1}, col? '#999' : '#000')
                 }
-                console.log(tile);
-                tilemapLocal.push(tile);
+                //console.log(tile);
+                //tilemapLocal.push(tile);
             });
         });
     });
@@ -79,6 +80,7 @@ function gameStart() {
 	}, 1000);
 }
 function gameLateStart() {
+    testeNet();
     // console.log(TileMap.data);
 }
 
