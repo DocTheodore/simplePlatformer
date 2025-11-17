@@ -9,7 +9,10 @@ socket.on('hello', (text:string) => {
     console.log(`Server says: ${text}`);
 });
 socket.on('chunkData', ({ xChunk, yChunk, tiles }: { xChunk: number, yChunk: number, tiles: Uint8Array }) => {
+    console.log(xChunk, yChunk, tiles)
     TileMap.setChunk(xChunk, yChunk, tiles);
+
+    console.log(TileMap.chunks);
 });
 
 // Metodos do client ================================

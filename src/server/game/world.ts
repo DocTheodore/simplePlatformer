@@ -3,7 +3,7 @@ import path from 'path';
 import { deflate, inflate } from 'pako';
 import { fileURLToPath } from 'url';
 import { createNoise2D } from "simplex-noise";
-import { CHUNK_SIZE } from '../../shared/constants';
+import { CHUNK_SIZE } from '../../shared/constants.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -42,7 +42,6 @@ export class WorldManager {
     private activeChunks: Map<string, ChunkData> = new Map();
 
     // World config
-
     constructor(worldName: string = 'teste') {
         // Configuração dos Paths
         this.filePath = path.join(__dirname, `../../../data/worlds/${worldName}`);

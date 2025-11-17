@@ -4,11 +4,14 @@ import path from "path";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import { getLocalIpAddress } from "../utils/ipaddress.js";
+import { WorldManager } from "../game/world.js";
 
 const app = express();
 const server = createServer(app);
 const io = new Server(server);
 const SERVER_PORT = 3000;
+
+const World = new WorldManager();
 
 // Diretórios
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
@@ -37,6 +40,10 @@ io.on('connection', (socket) => {
   socket.on("teste", () => {
     console.log("Ouvindo cliente", socket.handshake.address.split('::ffff:')[1]);
   })
+
+  socket.on("requestChunks", (data:{xChunk:number, yChunk:number, radius:number}) => {
+    socket.emit("chunkData", {xChunk: data.xChunk, yChunk: data.yChunk, tiles: World.getChunk(data.xChunk, data.yChunk)});
+  });
 });
 
 try{

@@ -12,6 +12,7 @@ export class Renderer {
     private static _ctx: CanvasRenderingContext2D | null = null;
     private static _screenSize: Size = { w: window.innerWidth, h: window.innerHeight };
     private static _tileSize = 16;
+    private static _offset = {x:0, y:0};
 
     private id: number;
     private position: Vec2;
@@ -45,8 +46,8 @@ export class Renderer {
         if (!Renderer._ctx) return;
         Renderer._ctx.fillStyle = this.color;
         Renderer._ctx.fillRect(
-            this.position.x,
-            this.position.y,
+            this.position.x - Renderer.offSetX,
+            this.position.y - Renderer.offSetY,
             this.size.w,
             this.size.h
         );
@@ -56,8 +57,8 @@ export class Renderer {
         if (!Renderer._ctx) return;
         Renderer._ctx.fillStyle = this.color;
         Renderer._ctx.fillRect(
-            this.position.x * Renderer._tileSize,
-            this.position.y * Renderer._tileSize,
+            this.position.x * Renderer._tileSize - Renderer.offSetX,
+            this.position.y * Renderer._tileSize - Renderer.offSetY,
             this.size.w * Renderer._tileSize,
             this.size.h * Renderer._tileSize
         );
@@ -73,6 +74,12 @@ export class Renderer {
     static set tileSize(newTileSize: number) {
         Renderer._tileSize = newTileSize;
     }
+    static set offSetX(x:number) {
+        Renderer._offset.x = x;
+    }
+    static set offSetY(y:number) {
+        Renderer._offset.y = y;
+    }
 
     static get ctx(): CanvasRenderingContext2D | null {
         return Renderer._ctx;
@@ -83,6 +90,13 @@ export class Renderer {
     static get tileSize(): number {
         return Renderer._tileSize;
     }
+    static get offSetX() {
+        return Renderer._offset.x;
+    }
+    static get offSetY() {
+        return Renderer._offset.y;
+    }
+
 
     // === Clear ===
     static Clear() {

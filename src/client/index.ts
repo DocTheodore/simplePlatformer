@@ -2,7 +2,7 @@ import { Renderer } from "./render.js";
 import { GameTime } from "./gameTime.js";
 import { InputHandler } from "./inputHandler.js";
 import { TileMap, tile } from "./tilemapHandler.js";
-import { testeNet } from "./network/socket.js";
+import { requestChunks, testeNet } from "./network/socket.js";
 
 console.log('Hello world');
 
@@ -23,6 +23,8 @@ const centerScreen = {
 
 const canvas = document.getElementById("game") as HTMLCanvasElement;
 const tilemapLocal:tile[] = [];
+const localCord = {x:0, y:0};
+
 let context = canvas.getContext("2d");
 let fps = {shown: 0, count: 0}
 
@@ -47,6 +49,48 @@ window.onresize = function() {
     resize();
     console.log(windowSize, windowTiles, centerScreen);
 }
+window.addEventListener("keydown", (e) => { // função de debbug
+    if(e.key === ' ') {
+        tilemapLocal.length = 0;
+        TileMap.load();
+        let index = 0;
+
+        function formatColor(x:number) {
+            return `${(Math.floor((x/160) * 256) % 256).toString(16)}`
+        }
+
+        TileMap.tiles.forEach((tile, key) => {
+            const [x, y] = key.split('_').map((key) => Number(key));
+            
+
+            const __tile = {
+                x: x,
+                y: y,
+                tileId: tile,
+                render: new Renderer(0, {x, y}, {w:1, h:1}, `#${formatColor(x)}${formatColor(y)}${(index%256).toString(16)}`)
+            }
+            
+            console.log(__tile, tile, `#${formatColor(x)}${formatColor(y)}${(index%256).toString(16)}`);
+            tilemapLocal.push(__tile);
+            index++;
+        });
+    }
+
+    if(Renderer.ctx) {
+        if(e.key === 'a') {
+            Renderer.offSetX -= 16;
+        }
+        if(e.key === 'd') {
+            Renderer.offSetX += 16;
+        }
+        if(e.key === 'w') {
+            Renderer.offSetY -= 16;
+        }
+        if(e.key === 's') {
+            Renderer.offSetY += 16;
+        }
+    }
+})
 
 // Game start
 function gameStart() {
@@ -57,9 +101,9 @@ function gameStart() {
 
     // Setup de eventos
     InputHandler.init();
-    TileMap.init().then(() => {
+    /* TileMap.init().then(() => {
         //console.log(TileMap.fileData);
-        TileMap.fileData.forEach((line:any, y:number) => {
+        TileMap.tiles.forEach((line:any, y:number) => {
             line.forEach((col:any, x:number) => {
                 const tile = {
                     x: x,
@@ -71,7 +115,7 @@ function gameStart() {
                 //tilemapLocal.push(tile);
             });
         });
-    });
+    }); */
 	
 	setInterval(function() {
 		fps.shown = fps.count;
@@ -81,7 +125,11 @@ function gameStart() {
 }
 function gameLateStart() {
     testeNet();
-    // console.log(TileMap.data);
+    for(let x=0; x < 5; x++) {
+        for (let y=0; y < 5; y++) {
+            requestChunks(x, y)
+        }
+    }
 }
 
 // Game update

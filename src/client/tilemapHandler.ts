@@ -1,4 +1,5 @@
-import { CHUNK_SIZE } from "../shared/constants.js";
+import { CHUNK_SIZE, TILE_SIZE } from "../shared/constants.js";
+import { requestChunks } from "./network/socket.js";
 
 export interface tile {
     x: number,
@@ -9,26 +10,32 @@ export interface tile {
 
 export class TileMap {
 
-    static fileData:any[] = [];
-    static loaded = false;
     static chunks = new Map<string, Uint8Array>();
+    static tiles = new Map<string, number>();
 
     constructor () {}
 
     static async init () {
-        return TileMap.load('./data/tilemap_a.txt');
+        return TileMap.load();
     }
 
-    static async load(filePath:string) {
+    static async load() {
         try{
-            const response = await fetch(filePath)
-            if(!response.ok) {
-                throw new Error(`Erro de HTTP: ${response.status}`);
-            }
-            const fileData = await response.text();
-            TileMap.fileData = TileMap.parseTileMap(fileData);
-            TileMap.loaded = true;
-            return response;
+            TileMap.chunks.forEach((chunk, key) => {
+                const view = new Uint8Array(chunk);
+                const [xChunk, yChunk] = key.split('_').map((key) => Number(key));
+
+                view.forEach((tile, i) => {
+                    const y = Math.floor(i / CHUNK_SIZE) + yChunk * CHUNK_SIZE;
+                    const x = Math.floor(i % CHUNK_SIZE) + xChunk * CHUNK_SIZE;
+                    const tileKey = `${x}_${y}`;
+                    
+                    TileMap.tiles.set(tileKey, tile);
+                });
+                
+                console.log(key, view, xChunk, yChunk);
+            })
+            console.log(TileMap.tiles);
         } catch(err) {
             console.log("Erro ao carregar o mapa: ", err);
             return null;
@@ -49,14 +56,14 @@ export class TileMap {
 
     static setChunk(x: number, y: number, tiles: Uint8Array) {
         const key = `${x}_${y}`;
-        this.chunks.set(key, tiles);
+        TileMap.chunks.set(key, tiles);
     }
 
     static getTile(worldX: number, worldY: number): number {
         const xChunk = Math.floor(worldX / CHUNK_SIZE);
         const yChunk = Math.floor(worldY / CHUNK_SIZE);
         const key = `${xChunk}_${yChunk}`;
-        const chunk = this.chunks.get(key);
+        const chunk = TileMap.chunks.get(key);
         if (!chunk) return 0; // ar
 
         const localX = worldX % CHUNK_SIZE;
