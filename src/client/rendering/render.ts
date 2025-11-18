@@ -53,7 +53,7 @@ export class Renderer {
         );
     }
 
-    Tile() {
+    Tile(tileId:number, screenX:number, screenY:number) {
         if (!Renderer._ctx) return;
         Renderer._ctx.fillStyle = this.color;
         Renderer._ctx.fillRect(

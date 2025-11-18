@@ -1,8 +1,11 @@
-import { Renderer } from "./render.js";
+import { Renderer } from "../rendering/render.js";
 import { GameTime } from "./gameTime.js";
 import { InputHandler } from "./inputHandler.js";
-import { TileMap, tile } from "./tilemapHandler.js";
-import { requestChunks, testeNet } from "./network/socket.js";
+import { TileMap } from "../world/tilemapHandler.js";
+import { requestChunks, testeNet } from "../network/socket.js";
+import { TILE_SIZE } from "../../shared/constants.js";
+import { WorldRender } from "../rendering/worldRender.js";
+import { Camera } from "../rendering/camera.js";
 
 console.log('Hello world');
 
@@ -22,8 +25,10 @@ const centerScreen = {
 }
 
 const canvas = document.getElementById("game") as HTMLCanvasElement;
-const tilemapLocal:tile[] = [];
-const localCord = {x:0, y:0};
+const Player = {
+    x:0,
+    y:0
+};
 
 let context = canvas.getContext("2d");
 let fps = {shown: 0, count: 0}
@@ -47,10 +52,14 @@ function resize() {
 }
 window.onresize = function() {
     resize();
+    Camera.resize(innerWidth, innerHeight);
     console.log(windowSize, windowTiles, centerScreen);
 }
 window.addEventListener("keydown", (e) => { // função de debbug
     if(e.key === ' ') {
+        //WorldRender.render();
+    }
+    /* 
         tilemapLocal.length = 0;
         TileMap.load();
         let index = 0;
@@ -61,61 +70,45 @@ window.addEventListener("keydown", (e) => { // função de debbug
 
         TileMap.tiles.forEach((tile, key) => {
             const [x, y] = key.split('_').map((key) => Number(key));
-            
 
             const __tile = {
                 x: x,
                 y: y,
                 tileId: tile,
-                render: new Renderer(0, {x, y}, {w:1, h:1}, `#${formatColor(x)}${formatColor(y)}${(index%256).toString(16)}`)
+                render: new Renderer(0, {x, y}, {w:1, h:1}, color)
             }
             
             console.log(__tile, tile, `#${formatColor(x)}${formatColor(y)}${(index%256).toString(16)}`);
             tilemapLocal.push(__tile);
             index++;
         });
-    }
+    } */
 
-    if(Renderer.ctx) {
-        if(e.key === 'a') {
-            Renderer.offSetX -= 16;
-        }
-        if(e.key === 'd') {
-            Renderer.offSetX += 16;
-        }
-        if(e.key === 'w') {
-            Renderer.offSetY -= 16;
-        }
-        if(e.key === 's') {
-            Renderer.offSetY += 16;
-        }
+    if(e.key === 'a') {
+        Player.x -= 16;
+    }
+    if(e.key === 'd') {
+        Player.x += 16;
+    }
+    if(e.key === 'w') {
+        Player.y -= 16;
+    }
+    if(e.key === 's') {
+        Player.y += 16;
     }
 })
 
 // Game start
 function gameStart() {
     // Renderização do canvas
-    context = canvas.getContext("2d");
+    context = canvas.getContext("2d") as CanvasRenderingContext2D;
     Renderer.ctx = context;
+    
     resize();
-
+    
     // Setup de eventos
     InputHandler.init();
-    /* TileMap.init().then(() => {
-        //console.log(TileMap.fileData);
-        TileMap.tiles.forEach((line:any, y:number) => {
-            line.forEach((col:any, x:number) => {
-                const tile = {
-                    x: x,
-                    y: y,
-                    tileId: col,
-                    render: new Renderer(0, {x, y}, {w:1, h:1}, col? '#999' : '#000')
-                }
-                //console.log(tile);
-                //tilemapLocal.push(tile);
-            });
-        });
-    }); */
+    WorldRender.init(Renderer.ctx);
 	
 	setInterval(function() {
 		fps.shown = fps.count;
@@ -149,13 +142,12 @@ function gameLateUpdate() {
 }
 
 // Game Render
-//const teste = new Renderer(1, centerScreen, {w:1, h:2});
 function gameRender() {
     Renderer.Clear();
-    
-    tilemapLocal.forEach((tile) => {
-        tile.render.Tile();
-    })
+
+    Camera.follow(Player);
+
+    WorldRender.render();
 }
 
 // =============================

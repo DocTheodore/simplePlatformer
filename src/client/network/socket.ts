@@ -1,4 +1,4 @@
-import { TileMap } from "../tilemapHandler.js";
+import { TileMap } from "../world/tilemapHandler.js";
 
 declare const io:any;
 

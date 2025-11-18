@@ -144,7 +144,7 @@ export class WorldManager {
     // Geração procedural (simples, como exemplo)
     private generateChunk(xChunk: number, yChunk: number): Uint8Array {
         const tiles = new Uint8Array(CHUNK_SIZE * CHUNK_SIZE);
-        const surfaceY = Math.floor(this.config.height / 3);
+        const surfaceY = 50;
 
         for (let y = 0; y < CHUNK_SIZE; y++) {
         for (let x = 0; x < CHUNK_SIZE; x++) {
@@ -152,10 +152,12 @@ export class WorldManager {
             const worldY = yChunk * CHUNK_SIZE + y;
             const index = y * CHUNK_SIZE + x;
 
-            if (worldY > surfaceY + 50) {
-                tiles[index] = 2; // pedra
+            if (worldY > surfaceY + 10) {
+                tiles[index] = 3; // pedra
+            } else if (worldY > surfaceY + 1) {
+                tiles[index] = 2; // terra
             } else if (worldY > surfaceY) {
-                tiles[index] = 1; // terra
+                tiles[index] = 1; // grama
             } else {
                 tiles[index] = 0; // ar
             }

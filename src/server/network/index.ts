@@ -3,8 +3,8 @@ import express from "express";
 import path from "path";
 import { createServer } from "http";
 import { Server } from "socket.io";
-import { getLocalIpAddress } from "../utils/ipaddress.js";
-import { WorldManager } from "../game/world.js";
+import { getLocalIpAddress } from "../../shared/utils/ipaddress.js";
+import { WorldManager } from "../world/world.js";
 
 const app = express();
 const server = createServer(app);
