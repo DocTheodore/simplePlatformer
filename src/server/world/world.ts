@@ -1,3 +1,4 @@
+//server/world/world.ts
 import fs from 'fs';
 import path from 'path';
 import { deflate, inflate } from 'pako';
@@ -156,8 +157,10 @@ export class WorldManager {
                 tiles[index] = 3; // pedra
             } else if (worldY > surfaceY + 1) {
                 tiles[index] = 2; // terra
-            } else if (worldY > surfaceY) {
+            } else if (worldY > surfaceY && worldX % 2) {
                 tiles[index] = 1; // grama
+            } else if (worldY > surfaceY) {
+                tiles[index] = 4; // grama escura
             } else {
                 tiles[index] = 0; // ar
             }

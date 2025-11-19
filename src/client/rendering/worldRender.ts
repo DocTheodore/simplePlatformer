@@ -7,6 +7,7 @@ const COLORS: Record<number, string> = {
     1: "#0f3",
     2: "#a63",
     3: "#888",
+    4: "#083",
 }
 
 export class WorldRender {
@@ -19,10 +20,10 @@ export class WorldRender {
     static render() {
         if (!WorldRender.ctx) return;
 
-        const startTileX = Math.floor((Camera.x - Camera.screenWidth / 2) / TILE_SIZE) //- 2;
-        const startTileY = Math.floor((Camera.y - Camera.screenHeight / 2) / TILE_SIZE) //- 2;
-        const endTileX = Math.ceil((Camera.x + Camera.screenWidth / 2) / TILE_SIZE) //+ 2;
-        const endTileY = Math.ceil((Camera.y + Camera.screenHeight / 2) / TILE_SIZE) //+ 2;
+        const startTileX = Math.floor((Camera.x - Camera.screenWidth / 2) / TILE_SIZE) - 2;
+        const startTileY = Math.floor((Camera.y - Camera.screenHeight / 2) / TILE_SIZE) - 2;
+        const endTileX = Math.ceil((Camera.x + Camera.screenWidth / 2) / TILE_SIZE) + 2;
+        const endTileY = Math.ceil((Camera.y + Camera.screenHeight / 2) / TILE_SIZE) + 2;
 
         for (let ty=startTileY; ty < endTileY; ty++) {
         for (let tx=startTileX; tx < endTileX; tx++) {

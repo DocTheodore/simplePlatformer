@@ -3,21 +3,20 @@ import { GameTime } from "./gameTime.js";
 import { InputHandler } from "./inputHandler.js";
 import { TileMap } from "../world/tilemapHandler.js";
 import { requestChunks, testeNet } from "../network/socket.js";
-import { TILE_SIZE } from "../../shared/constants.js";
+import { CHUNK_SIZE, TILE_SIZE } from "../../shared/constants.js";
 import { WorldRender } from "../rendering/worldRender.js";
 import { Camera } from "../rendering/camera.js";
 
 console.log('Hello world');
 
 // Var list
-const tileSize = 16;
 const windowSize = {
     w:innerWidth,
     h:innerHeight
 }
 const windowTiles = {
-    x:Math.ceil(windowSize.w / tileSize),
-    y:Math.ceil(windowSize.h / tileSize),
+    x:Math.ceil(windowSize.w / TILE_SIZE),
+    y:Math.ceil(windowSize.h / TILE_SIZE),
 }
 const centerScreen = {
     x: Math.round(windowTiles.x / 2),
@@ -26,8 +25,10 @@ const centerScreen = {
 
 const canvas = document.getElementById("game") as HTMLCanvasElement;
 const Player = {
-    x:0,
-    y:0
+    x: Math.floor(windowSize.w / 2),
+    y: Math.floor(windowSize.h / 2),
+    chunk: {x: 0, y: 0},
+    chunkRadius: Math.ceil((windowTiles.x / CHUNK_SIZE) / 2)
 };
 
 let context = canvas.getContext("2d");
@@ -38,8 +39,8 @@ function resize() {
     windowSize.w = innerWidth;
     windowSize.h = innerHeight;
 
-    windowTiles.x = Math.ceil(windowSize.w / tileSize);
-    windowTiles.y = Math.ceil(windowSize.h / tileSize);
+    windowTiles.x = Math.ceil(windowSize.w / TILE_SIZE);
+    windowTiles.y = Math.ceil(windowSize.h / TILE_SIZE);
 
     centerScreen.x = Math.round(windowTiles.x / 2);
     centerScreen.y = Math.round(windowTiles.y / 2);
@@ -49,40 +50,17 @@ function resize() {
         Renderer.ctx.canvas.height = windowSize.h;
     }
     Renderer.screenSize = windowSize;
+    Player.chunkRadius = Math.ceil((windowTiles.x / CHUNK_SIZE) / 2) + 1
 }
 window.onresize = function() {
     resize();
     Camera.resize(innerWidth, innerHeight);
-    console.log(windowSize, windowTiles, centerScreen);
+    console.log(windowSize, windowTiles, centerScreen, Player);
 }
 window.addEventListener("keydown", (e) => { // função de debbug
     if(e.key === ' ') {
-        //WorldRender.render();
+        console.log(windowSize, windowTiles, centerScreen, Player);
     }
-    /* 
-        tilemapLocal.length = 0;
-        TileMap.load();
-        let index = 0;
-
-        function formatColor(x:number) {
-            return `${(Math.floor((x/160) * 256) % 256).toString(16)}`
-        }
-
-        TileMap.tiles.forEach((tile, key) => {
-            const [x, y] = key.split('_').map((key) => Number(key));
-
-            const __tile = {
-                x: x,
-                y: y,
-                tileId: tile,
-                render: new Renderer(0, {x, y}, {w:1, h:1}, color)
-            }
-            
-            console.log(__tile, tile, `#${formatColor(x)}${formatColor(y)}${(index%256).toString(16)}`);
-            tilemapLocal.push(__tile);
-            index++;
-        });
-    } */
 
     if(e.key === 'a') {
         Player.x -= 16;
@@ -96,7 +74,24 @@ window.addEventListener("keydown", (e) => { // função de debbug
     if(e.key === 's') {
         Player.y += 16;
     }
-})
+});
+
+function loadVisibleChunks(centerChunkX:number, centerChunkY:number) {
+    requestChunks(centerChunkX, centerChunkY, Player.chunkRadius);
+}
+function unloadFarChunks(centerChunkX:number, centerChunkY:number) {
+    const unloadRadius = Player.chunkRadius + 2;
+
+    for(const key of Array.from(TileMap.chunks.keys())) {
+        const [cx, cy] = key.split('_').map(Number);
+        const distX = Math.abs(cx - centerChunkX);
+        const distY = Math.abs(cy - centerChunkY);
+
+        if(distX > unloadRadius || distY > unloadRadius) {
+            TileMap.unloadChunk(cx, cy);
+        }
+    }
+}
 
 // Game start
 function gameStart() {
@@ -118,35 +113,50 @@ function gameStart() {
 }
 function gameLateStart() {
     testeNet();
-    for(let x=0; x < 5; x++) {
-        for (let y=0; y < 5; y++) {
-            requestChunks(x, y)
-        }
-    }
+    
+    const WorldX = Math.floor(Player.x / TILE_SIZE);
+    const WorldY = Math.floor(Player.y / TILE_SIZE);
+    const currChunkX = Math.floor(WorldX / CHUNK_SIZE);
+    const currChunkY = Math.floor(WorldY / CHUNK_SIZE);
+    loadVisibleChunks(currChunkX, currChunkY);
 }
 
 // Game update
 function gameUpdate() {
     GameTime.Update();
     
-    /* console.log(
+    console.log(
         InputHandler.keyPressed,
         InputHandler.keyClicked,
         InputHandler.mousePressed,
         InputHandler.mouseClicked,
-    ); */
+    );
+
+    const WorldX = Math.floor(Player.x / TILE_SIZE);
+    const WorldY = Math.floor(Player.y / TILE_SIZE);
+    const currChunkX = Math.floor(WorldX / CHUNK_SIZE);
+    const currChunkY = Math.floor(WorldY / CHUNK_SIZE);
+
+    if(Math.abs(currChunkX - Player.chunk.x) > 0 || Math.abs(currChunkY - Player.chunk.y) > 0) {
+        loadVisibleChunks(currChunkX, currChunkY);
+        unloadFarChunks(currChunkX, currChunkY);
+        Player.chunk = {x: currChunkX, y: currChunkY};
+        //console.log(`Novo chunk do player: ${Player.chunk.x}, ${Player.chunk.y}`);
+    }
 }
 function gameLateUpdate() {
     InputHandler.lateUpdate();
-
+    
 }
 
 // Game Render
 function gameRender() {
     Renderer.Clear();
 
+    // Camera
     Camera.follow(Player);
 
+    // Render
     WorldRender.render();
 }
 

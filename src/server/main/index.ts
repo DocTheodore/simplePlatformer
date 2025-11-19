@@ -8,7 +8,7 @@ import { WorldManager } from "../world/world.js";
 
 const app = express();
 const server = createServer(app);
-const io = new Server(server);
+const io = new Server(server, { "pingInterval": 2000, "pingTimeout": 10000 });
 const SERVER_PORT = 3000;
 
 const World = new WorldManager();
@@ -36,14 +36,29 @@ app.get("/", (req, res) => {
 
 io.on('connection', (socket) => {
   socket.emit("hello", "...");
+  const clientIp = socket.handshake.address.split('::ffff:')[1]
 
   socket.on("teste", () => {
-    console.log("Ouvindo cliente", socket.handshake.address.split('::ffff:')[1]);
+    console.log("Ouvindo cliente", clientIp);
   })
 
   socket.on("requestChunks", (data:{xChunk:number, yChunk:number, radius:number}) => {
-    socket.emit("chunkData", {xChunk: data.xChunk, yChunk: data.yChunk, tiles: World.getChunk(data.xChunk, data.yChunk)});
+    const{xChunk, yChunk, radius} = data;
+    for (let dx = -radius; dx <= radius; dx++) {
+    for (let dy = -radius; dy <= radius; dy++) {
+      const cx = xChunk + dx;
+      const cy = yChunk + dy;
+      const tiles = World.getChunk(cx, cy);
+      io.emit("chunkData", {xChunk: cx, yChunk: cy, tiles});
+    }
+    }
+
   });
+
+  // Lidar com a desconexão
+  socket.on("disconnect", () => {
+    console.log("Cliente desconectado", clientIp);
+  })
 });
 
 try{

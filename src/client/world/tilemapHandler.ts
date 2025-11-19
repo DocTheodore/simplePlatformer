@@ -10,7 +10,7 @@ export class TileMap {
         const key = `${xChunk}_${yChunk}`;
         const chunkTiles = new Uint8Array(tiles);
         TileMap.chunks.set(key, chunkTiles);
-        console.log("Chunk recebido e armazenado:", TileMap.chunks.get(key)); // debug
+        //console.log("Chunk recebido e armazenado:", TileMap.chunks.get(key)); // debug
     }
 
     static getTile(worldX: number, worldY: number): number {
