@@ -4,11 +4,11 @@ import { CHUNK_SIZE } from "../../shared/constants.js";
 
 
 export class TileMap {
-    static chunks = new Map<string, Uint8Array>();
+    static chunks = new Map<string, Uint16Array>();
 
-    static setChunk(xChunk: number, yChunk: number, tiles: Uint8Array) {
+    static setChunk(xChunk: number, yChunk: number, tiles: Uint16Array) {
         const key = `${xChunk}_${yChunk}`;
-        const chunkTiles = new Uint8Array(tiles);
+        const chunkTiles = new Uint16Array(tiles);
         TileMap.chunks.set(key, chunkTiles);
         //console.log("Chunk recebido e armazenado:", TileMap.chunks.get(key)); // debug
     }

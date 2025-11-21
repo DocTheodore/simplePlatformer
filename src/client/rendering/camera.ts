@@ -17,6 +17,13 @@ export class Camera {
         }
     }
 
+    static screenToWorld(screenX:number, screenY:number): {x:number, y:number} {
+        return {
+            x: this.x - this.screenWidth / 2 + screenX,
+            y: this.y - this.screenHeight / 2 + screenY,
+        }
+    }
+
     static follow(target:{x:number, y:number}, lerp:number = 0.1) {
         this.x += (target.x - this.x) * lerp;
         this.y += (target.y - this.y) * lerp;

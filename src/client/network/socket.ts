@@ -13,7 +13,7 @@ socket.on('hello', (text:string) => {
     console.log(`Server says: ${text}`);
     ipKey = text;
 });
-socket.on('chunkData', ({ xChunk, yChunk, tiles }: { xChunk: number, yChunk: number, tiles: Uint8Array }) => {
+socket.on('chunkData', ({ xChunk, yChunk, tiles }: { xChunk: number, yChunk: number, tiles: Uint16Array }) => {
     TileMap.setChunk(xChunk, yChunk, tiles);
     //console.log(TileMap.chunks);
 });

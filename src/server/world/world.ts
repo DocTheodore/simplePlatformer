@@ -1,7 +1,7 @@
 //server/world/world.ts
 import fs from 'fs';
 import path from 'path';
-import { deflate, inflate } from 'pako';
+import { deflateSync, inflateSync } from 'fflate';
 import { fileURLToPath } from 'url';
 import { createNoise2D } from "simplex-noise";
 import { CHUNK_SIZE } from '../../shared/constants.js';
@@ -25,7 +25,7 @@ interface TileChange {
     playerId: string
 }
 interface ChunkData {
-    tiles: Uint8Array,
+    tiles: Uint16Array,
     changed: boolean,
     lastAccess: number
 }
@@ -38,7 +38,7 @@ export class WorldManager {
     private chunkPath: string = '';
 
     // Chunk config
-    private fileCache: Map<string, Uint8Array> = new Map();
+    private fileCache: Map<string, Uint16Array> = new Map();
     private saveQueue: Map<string, TileChange[]> = new Map();
     private activeChunks: Map<string, ChunkData> = new Map();
 
@@ -58,16 +58,16 @@ export class WorldManager {
         return path.join(this.chunkPath, `${xChunk}_${yChunk}.chunk`);
     }
 
-    private loadChunkFromFile(xChunk: number, yChunk: number): Uint8Array | null {
+    private loadChunkFromFile(xChunk: number, yChunk: number): Uint16Array | null {
         const filePath = this.getChunkFilePath(xChunk, yChunk);
         if (!fs.existsSync(filePath)) return null;
         
         const compressed = fs.readFileSync(filePath);
-        return inflate(compressed); // → Uint8Array(1024)
+        return inflateSync(compressed) as Uint16Array; // → Uint16Array(1024)
     }
 
-    private saveChunkToFile(xChunk: number, yChunk: number, tiles: Uint8Array) {
-        const compressed = deflate(tiles);
+    private saveChunkToFile(xChunk: number, yChunk: number, tiles: Uint16Array) {
+        const compressed = deflateSync(tiles, {level: 6}) as Uint16Array;
         const filePath = this.getChunkFilePath(xChunk, yChunk);
 
         fs.writeFileSync(filePath, compressed);
@@ -88,7 +88,7 @@ export class WorldManager {
     }
 
     // === 3. DADOS DE REDE (ativo no tick) ===
-    public getChunk(xChunk: number, yChunk: number): Uint8Array {
+    public getChunk(xChunk: number, yChunk: number): Uint16Array {
         const key = `${xChunk}_${yChunk}`;
         const now = Date.now();
 
@@ -143,8 +143,8 @@ export class WorldManager {
     }
 
     // Geração procedural (simples, como exemplo)
-    private generateChunk(xChunk: number, yChunk: number): Uint8Array {
-        const tiles = new Uint8Array(CHUNK_SIZE * CHUNK_SIZE);
+    private generateChunk(xChunk: number, yChunk: number): Uint16Array {
+        const tiles = new Uint16Array(CHUNK_SIZE * CHUNK_SIZE);
         const surfaceY = 50;
 
         for (let y = 0; y < CHUNK_SIZE; y++) {
