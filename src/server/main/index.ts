@@ -5,11 +5,15 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import { getLocalIpAddress } from "../../shared/utils/ipaddress.js";
 import { WorldManager } from "../world/world.js";
+import { Player } from "../../shared/types.js";
 
 const app = express();
 const server = createServer(app);
 const io = new Server(server, { "pingInterval": 2000, "pingTimeout": 10000 });
 const SERVER_PORT = 3000;
+
+// Debug -------
+const players = new Map<string, Player>();
 
 const World = new WorldManager();
 
@@ -35,8 +39,10 @@ app.get("/", (req, res) => {
 });
 
 io.on('connection', (socket) => {
-  socket.emit("hello", "...");
   const clientIp = socket.handshake.address.split('::ffff:')[1]
+  socket.emit("hello", clientIp);
+  players.set(clientIp, { x:0, y:0, color:`hsl(${Math.floor(Math.random() * 360)}, 100%, 50%)` });
+  io.emit("playerData", { msg: `Nova conexão:`, data: Object.fromEntries(players.entries()) });
 
   socket.on("teste", () => {
     console.log("Ouvindo cliente", clientIp);
@@ -55,10 +61,18 @@ io.on('connection', (socket) => {
 
   });
 
-  // Lidar com a desconexão
+  socket.on("requestPlayerUpdate", (data:Player) => {
+    players.set(clientIp, data);
+    console.log(players);
+    io.emit("playerData", { msg: `Player moveu:`, data: Object.fromEntries(players.entries()) });
+  })
+
+  // Lidar com a desconexão ================================
   socket.on("disconnect", () => {
     console.log("Cliente desconectado", clientIp);
-  })
+    players.delete(clientIp);
+    io.emit("playerData", { msg: `Jogador saiu, jogadores ativos:`, data: Object.fromEntries(players.entries()) });
+  });
 });
 
 try{

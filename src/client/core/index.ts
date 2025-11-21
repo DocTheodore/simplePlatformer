@@ -2,10 +2,11 @@ import { Renderer } from "../rendering/render.js";
 import { GameTime } from "./gameTime.js";
 import { InputHandler } from "./inputHandler.js";
 import { TileMap } from "../world/tilemapHandler.js";
-import { requestChunks, testeNet } from "../network/socket.js";
+import { localPlayers, myPlayer, playerUpdate, requestChunks, testeNet } from "../network/socket.js";
 import { CHUNK_SIZE, TILE_SIZE } from "../../shared/constants.js";
 import { WorldRender } from "../rendering/worldRender.js";
 import { Camera } from "../rendering/camera.js";
+import { EntityRender } from "../rendering/entityRender.js";
 
 console.log('Hello world');
 
@@ -27,6 +28,8 @@ const canvas = document.getElementById("game") as HTMLCanvasElement;
 const Player = {
     x: Math.floor(windowSize.w / 2),
     y: Math.floor(windowSize.h / 2),
+    w: 30,
+    h: 60,
     chunk: {x: 0, y: 0},
     chunkRadius: Math.ceil((windowTiles.x / CHUNK_SIZE) / 2)
 };
@@ -59,7 +62,8 @@ window.onresize = function() {
 }
 window.addEventListener("keydown", (e) => { // função de debbug
     if(e.key === ' ') {
-        console.log(windowSize, windowTiles, centerScreen, Player);
+        //console.log(windowSize, windowTiles, centerScreen, Player);
+        console.log(myPlayer, Player);
     }
 
     if(e.key === 'a') {
@@ -104,6 +108,7 @@ function gameStart() {
     // Setup de eventos
     InputHandler.init();
     WorldRender.init(Renderer.ctx);
+    EntityRender.init(Renderer.ctx);
 	
 	setInterval(function() {
 		fps.shown = fps.count;
@@ -124,13 +129,23 @@ function gameLateStart() {
 // Game update
 function gameUpdate() {
     GameTime.Update();
+
     
-    console.log(
+    /* console.log(
         InputHandler.keyPressed,
         InputHandler.keyClicked,
         InputHandler.mousePressed,
         InputHandler.mouseClicked,
-    );
+    ); */
+
+    if(myPlayer) {
+        if(Player.x !== myPlayer.x || Player.y !== myPlayer.y) {
+            myPlayer.x = Player.x;
+            myPlayer.y = Player.y;
+            playerUpdate(myPlayer);
+        }
+        
+    }
 
     const WorldX = Math.floor(Player.x / TILE_SIZE);
     const WorldY = Math.floor(Player.y / TILE_SIZE);
@@ -158,6 +173,9 @@ function gameRender() {
 
     // Render
     WorldRender.render();
+    localPlayers.forEach((player) => {
+        EntityRender.render(player.x, player.y, Player.w, Player.h, player.color);
+    });
 }
 
 // =============================

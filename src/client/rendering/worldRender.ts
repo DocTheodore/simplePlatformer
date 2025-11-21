@@ -36,8 +36,8 @@ export class WorldRender {
 
             this.ctx.fillStyle = COLORS[tileId] || "#f0f";
             this.ctx.fillRect(
-                Math.round(screen.x),
-                Math.round(screen.y),
+                Math.floor(screen.x),
+                Math.floor(screen.y),
                 TILE_SIZE,
                 TILE_SIZE,
             )
