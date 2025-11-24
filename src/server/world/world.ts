@@ -38,7 +38,6 @@ export class WorldManager {
     private chunkPath: string = '';
 
     // Chunk config
-    private fileCache: Map<string, Uint16Array> = new Map();
     private saveQueue: Map<string, TileChange[]> = new Map();
     private activeChunks: Map<string, ChunkData> = new Map();
 
@@ -62,17 +61,17 @@ export class WorldManager {
         const filePath = this.getChunkFilePath(xChunk, yChunk);
         if (!fs.existsSync(filePath)) return null;
         
-        const compressed = fs.readFileSync(filePath);
-        return inflateSync(compressed) as Uint16Array; // → Uint16Array(1024)
+        const compressed = Uint8Array.from(fs.readFileSync(filePath));
+        const decompressed = inflateSync(compressed)
+
+        return new Uint16Array(decompressed.buffer);
     }
 
     private saveChunkToFile(xChunk: number, yChunk: number, tiles: Uint16Array) {
-        const compressed = deflateSync(tiles, {level: 6}) as Uint16Array;
+        const u8 = deflateSync(new Uint8Array(tiles.buffer));
         const filePath = this.getChunkFilePath(xChunk, yChunk);
 
-        fs.writeFileSync(filePath, compressed);
-        const key = `${xChunk}_${yChunk}`;
-        this.fileCache.set(key, compressed);
+        fs.writeFileSync(filePath, u8);
     }
 
     // === 2. DADOS DE SALVAMENTO (fila de mudanças) ===
@@ -112,9 +111,9 @@ export class WorldManager {
             const localX = change.x - xChunk * CHUNK_SIZE;
             const localY = change.y - yChunk * CHUNK_SIZE;
             const index = localY * CHUNK_SIZE + localX;
-        if (index >= 0 && index < 1024) {
-            tiles[index] = change.tileId;
-        }
+            if (index >= 0 && index < 1024) {
+                tiles[index] = change.tileId;
+            }
         }
         this.saveQueue.delete(key); // limpa fila
 

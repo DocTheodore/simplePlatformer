@@ -32,7 +32,7 @@ export class TileMap {
         return chunk[index];
     }
 
-    // Opcional: limpar chunks longe do player
+    // limpar chunks longe do player
     static unloadChunk(xChunk: number, yChunk: number) {
         TileMap.chunks.delete(`${xChunk}_${yChunk}`);
     }

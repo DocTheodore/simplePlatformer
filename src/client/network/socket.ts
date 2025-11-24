@@ -18,12 +18,9 @@ socket.on('chunkData', ({ xChunk, yChunk, tiles }: { xChunk: number, yChunk: num
     //console.log(TileMap.chunks);
 });
 socket.on('playerData', (serverData:any) => {
-    const {msg, data} = serverData;
-    console.log(serverData);
-    console.log(msg);
-    localPlayers = new Map(Object.entries(data))
+    const data = serverData;
+    localPlayers = new Map(Object.entries(data));
     myPlayer = localPlayers.get(ipKey) as Player;
-    console.log(localPlayers, myPlayer);
 });
 
 // Metodos do client ================================

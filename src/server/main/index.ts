@@ -42,7 +42,7 @@ io.on('connection', (socket) => {
   const clientIp = socket.handshake.address.split('::ffff:')[1]
   socket.emit("hello", clientIp);
   players.set(clientIp, { x:0, y:0, color:`hsl(${Math.floor(Math.random() * 360)}, 100%, 50%)` });
-  io.emit("playerData", { msg: `Nova conexão:`, data: Object.fromEntries(players.entries()) });
+  io.emit("playerData", Object.fromEntries(players.entries()) );
 
   socket.on("teste", () => {
     console.log("Ouvindo cliente", clientIp);
@@ -55,7 +55,7 @@ io.on('connection', (socket) => {
       const cx = xChunk + dx;
       const cy = yChunk + dy;
       const tiles = World.getChunk(cx, cy);
-      io.emit("chunkData", {xChunk: cx, yChunk: cy, tiles});
+      socket.emit("chunkData", {xChunk: cx, yChunk: cy, tiles: tiles.buffer}, { binary: true });
     }
     }
 
@@ -63,17 +63,24 @@ io.on('connection', (socket) => {
 
   socket.on("requestPlayerUpdate", (data:Player) => {
     players.set(clientIp, data);
-    console.log(players);
-    io.emit("playerData", { msg: `Player moveu:`, data: Object.fromEntries(players.entries()) });
+    //io.emit("playerData", Object.fromEntries(players.entries()) );
   })
 
   // Lidar com a desconexão ================================
   socket.on("disconnect", () => {
     console.log("Cliente desconectado", clientIp);
     players.delete(clientIp);
-    io.emit("playerData", { msg: `Jogador saiu, jogadores ativos:`, data: Object.fromEntries(players.entries()) });
+    io.emit("playerData", Object.fromEntries(players.entries()) );
   });
 });
+
+setInterval(() => {
+    io.emit("playerData", Object.fromEntries(players.entries()) );
+}, 15);
+
+setInterval(() => {
+    World.autoSaveChunks();
+}, 10_000);
 
 try{
   server.listen(SERVER_PORT, () => {
