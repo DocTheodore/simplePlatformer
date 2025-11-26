@@ -7,6 +7,7 @@ import { CHUNK_SIZE, TILE_SIZE } from "../../shared/constants.js";
 import { WorldRender } from "../rendering/worldRender.js";
 import { Camera } from "../rendering/camera.js";
 import { EntityRender } from "../rendering/entityRender.js";
+import { Controller } from "./controller.js";
 
 console.log('Hello world');
 
@@ -60,25 +61,6 @@ window.onresize = function() {
     Camera.resize(innerWidth, innerHeight);
     console.log(windowSize, windowTiles, centerScreen, Player);
 }
-window.addEventListener("keydown", (e) => { // função de debbug
-    if(e.key === ' ') {
-        //console.log(windowSize, windowTiles, centerScreen, Player);
-        console.log(myPlayer, Player);
-    }
-
-    if(e.key === 'a') {
-        Player.x -= 16;
-    }
-    if(e.key === 'd') {
-        Player.x += 16;
-    }
-    if(e.key === 'w') {
-        Player.y -= 16;
-    }
-    if(e.key === 's') {
-        Player.y += 16;
-    }
-});
 
 function loadVisibleChunks(centerChunkX:number, centerChunkY:number) {
     requestChunks(centerChunkX, centerChunkY, Player.chunkRadius);
@@ -129,22 +111,11 @@ function gameLateStart() {
 // Game update
 function gameUpdate() {
     GameTime.Update();
-
-    
-    /* console.log(
-        InputHandler.keyPressed,
-        InputHandler.keyClicked,
-        InputHandler.mousePressed,
-        InputHandler.mouseClicked,
-    ); */
+    Controller.Update();
 
     if(myPlayer) {
-        if(Player.x !== myPlayer.x || Player.y !== myPlayer.y) {
-            myPlayer.x = Player.x;
-            myPlayer.y = Player.y;
-            playerUpdate(myPlayer);
-        }
-        
+        Player.x = myPlayer.x;
+        Player.y = myPlayer.y;
     }
 
     const WorldX = Math.floor(Player.x / TILE_SIZE);

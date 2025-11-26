@@ -6,6 +6,7 @@ import { Server } from "socket.io";
 import { getLocalIpAddress } from "../../shared/utils/ipaddress.js";
 import { WorldManager } from "../world/world.js";
 import { Player } from "../../shared/types.js";
+import { INPUT } from "../../shared/constants.js";
 
 const app = express();
 const server = createServer(app);
@@ -13,7 +14,7 @@ const io = new Server(server, { "pingInterval": 2000, "pingTimeout": 10000 });
 const SERVER_PORT = 3000;
 
 // Debug -------
-const players = new Map<string, Player>();
+const NetworkPlayers = new Map<string, Player>();
 
 const World = new WorldManager();
 
@@ -41,8 +42,8 @@ app.get("/", (req, res) => {
 io.on('connection', (socket) => {
   const clientIp = socket.handshake.address.split('::ffff:')[1]
   socket.emit("hello", clientIp);
-  players.set(clientIp, { x:0, y:0, color:`hsl(${Math.floor(Math.random() * 360)}, 100%, 50%)` });
-  io.emit("playerData", Object.fromEntries(players.entries()) );
+  NetworkPlayers.set(clientIp, { x:0, y:0, color:`hsl(${Math.floor(Math.random() * 360)}, 100%, 50%)` });
+  io.emit("playerData", Object.fromEntries(NetworkPlayers.entries()) );
 
   socket.on("teste", () => {
     console.log("Ouvindo cliente", clientIp);
@@ -62,20 +63,36 @@ io.on('connection', (socket) => {
   });
 
   socket.on("requestPlayerUpdate", (data:Player) => {
-    players.set(clientIp, data);
-    //io.emit("playerData", Object.fromEntries(players.entries()) );
+    NetworkPlayers.set(clientIp, data);
+    //io.emit("playerData", Object.fromEntries(NetworkPlayers.entries()) );
+  });
+
+  socket.on("playerAction", (data) => {
+    const { actionId } = data;
+    const thisPlayer = NetworkPlayers.get(clientIp);
+    const Speed = 10;
+
+    if(thisPlayer) {
+
+      if(actionId === INPUT.UP) { thisPlayer.y -= Speed }
+      if(actionId === INPUT.DOWN) { thisPlayer.y += Speed }
+      if(actionId === INPUT.LEFT) { thisPlayer.x -= Speed }
+      if(actionId === INPUT.RIGHT) { thisPlayer.x += Speed }
+
+      NetworkPlayers.set(clientIp, thisPlayer);
+    }
   })
 
   // Lidar com a desconexão ================================
   socket.on("disconnect", () => {
     console.log("Cliente desconectado", clientIp);
-    players.delete(clientIp);
-    io.emit("playerData", Object.fromEntries(players.entries()) );
+    NetworkPlayers.delete(clientIp);
+    io.emit("playerData", Object.fromEntries(NetworkPlayers.entries()) );
   });
 });
 
 setInterval(() => {
-    io.emit("playerData", Object.fromEntries(players.entries()) );
+    io.emit("playerData", Object.fromEntries(NetworkPlayers.entries()) );
 }, 15);
 
 setInterval(() => {
