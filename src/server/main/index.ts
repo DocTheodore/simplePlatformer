@@ -1,4 +1,4 @@
-// server/index.ts
+// src/server/main/index.ts
 import express from "express";
 import path from "path";
 import { createServer } from "http";
@@ -6,7 +6,8 @@ import { Server } from "socket.io";
 import { getLocalIpAddress } from "../../shared/utils/ipaddress.js";
 import { WorldManager } from "../world/world.js";
 import { Player } from "../../shared/types.js";
-import { INPUT } from "../../shared/constants.js";
+import { CHUNK_SIZE, INPUT, PLAYER } from "../../shared/constants.js";
+import { checkTileCollision } from "../../shared/physics/collision.js";
 
 const app = express();
 const server = createServer(app);
@@ -64,23 +65,47 @@ io.on('connection', (socket) => {
 
   socket.on("requestPlayerUpdate", (data:Player) => {
     NetworkPlayers.set(clientIp, data);
-    //io.emit("playerData", Object.fromEntries(NetworkPlayers.entries()) );
+    socket.emit("playerData", Object.fromEntries(NetworkPlayers.entries()) );
   });
 
   socket.on("playerAction", (data) => {
     const { actionId } = data;
     const thisPlayer = NetworkPlayers.get(clientIp);
+    if(!thisPlayer) return 
+    
     const Speed = 10;
 
-    if(thisPlayer) {
+    let newX = thisPlayer.x;
+    let newY = thisPlayer.y;
 
-      if(actionId === INPUT.UP) { thisPlayer.y -= Speed }
-      if(actionId === INPUT.DOWN) { thisPlayer.y += Speed }
-      if(actionId === INPUT.LEFT) { thisPlayer.x -= Speed }
-      if(actionId === INPUT.RIGHT) { thisPlayer.x += Speed }
+    if(actionId === INPUT.UP) { newY -= Speed }
+    if(actionId === INPUT.DOWN) { newY += Speed }
+    if(actionId === INPUT.LEFT) { newX -= Speed }
+    if(actionId === INPUT.RIGHT) { newX += Speed }
 
-      NetworkPlayers.set(clientIp, thisPlayer);
+    const getTile = (worldX: number, worldY: number): number | null => {
+        const xChunk = Math.floor(worldX / CHUNK_SIZE);
+        const yChunk = Math.floor(worldY / CHUNK_SIZE);
+        const chunk = World.getChunk(xChunk, yChunk);
+        if (!chunk) { return null }
+
+        // Garante que % funcione com números negativos
+        const localX = ((worldX % CHUNK_SIZE) + CHUNK_SIZE) % CHUNK_SIZE;
+        const localY = ((worldY % CHUNK_SIZE) + CHUNK_SIZE) % CHUNK_SIZE;
+
+        const index = localY * CHUNK_SIZE + localX;
+        return chunk[index];
     }
+
+    // Checar no X
+    let collision = checkTileCollision(newX, thisPlayer.y, PLAYER.WIDTH, PLAYER.HEIGHT, getTile);
+    if (!collision) thisPlayer.x = newX;
+
+    // Checar no Y
+    collision = checkTileCollision(thisPlayer.x, newY, PLAYER.WIDTH, PLAYER.HEIGHT, getTile);
+    if (!collision) thisPlayer.y = newY;
+
+    NetworkPlayers.set(clientIp, thisPlayer);
   })
 
   // Lidar com a desconexão ================================

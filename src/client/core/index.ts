@@ -1,9 +1,10 @@
+// src/client/core/index
 import { Renderer } from "../rendering/render.js";
 import { GameTime } from "./gameTime.js";
 import { InputHandler } from "./inputHandler.js";
 import { TileMap } from "../world/tilemapHandler.js";
-import { localPlayers, myPlayer, playerUpdate, requestChunks, testeNet } from "../network/socket.js";
-import { CHUNK_SIZE, TILE_SIZE } from "../../shared/constants.js";
+import { localPlayers, myPlayer, requestChunks, testeNet } from "../network/socket.js";
+import { CHUNK_SIZE, PLAYER, TILE_SIZE } from "../../shared/constants.js";
 import { WorldRender } from "../rendering/worldRender.js";
 import { Camera } from "../rendering/camera.js";
 import { EntityRender } from "../rendering/entityRender.js";
@@ -29,8 +30,8 @@ const canvas = document.getElementById("game") as HTMLCanvasElement;
 const Player = {
     x: Math.floor(windowSize.w / 2),
     y: Math.floor(windowSize.h / 2),
-    w: 30,
-    h: 60,
+    w: PLAYER.WIDTH,
+    h: PLAYER.HEIGHT,
     chunk: {x: 0, y: 0},
     chunkRadius: Math.ceil((windowTiles.x / CHUNK_SIZE) / 2)
 };
@@ -140,7 +141,7 @@ function gameRender() {
     Renderer.Clear();
 
     // Camera
-    Camera.follow(Player);
+    Camera.follow(Player, 0.8);
 
     // Render
     WorldRender.render();

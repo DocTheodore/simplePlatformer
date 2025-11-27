@@ -1,4 +1,4 @@
-//server/world/world.ts
+//src/server/world/world.ts
 import fs from 'fs';
 import path from 'path';
 import { deflateSync, inflateSync } from 'fflate';

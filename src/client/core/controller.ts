@@ -1,5 +1,8 @@
-import { INPUT } from "../../shared/constants.js";
-import { socket } from "../network/socket.js";
+//src/client/core/controller
+import { INPUT, PLAYER } from "../../shared/constants.js";
+import { checkTileCollision } from "../../shared/physics/collision.js";
+import { myPlayer, socket } from "../network/socket.js";
+import { TileMap } from "../world/tilemapHandler.js";
 import { InputHandler } from "./inputHandler.js";
 
 interface InputConfigType {
@@ -38,20 +41,53 @@ export class Controller {
     }
 
     static Update() {
-        if (!InputHandler) return
-        
+        if (!myPlayer) return;
+
+        const SPEED = 10;
+        const w = PLAYER.WIDTH, h = PLAYER.HEIGHT;
+
+        let moved = false;
+        const newPos = { x: myPlayer.x, y: myPlayer.y };
+
         if (InputHandler.keyPressed.includes(Controller.InputConfig.UP)) {
-            Controller.sendAction(INPUT.UP)
-        }        
+            newPos.y -= SPEED;
+            Controller.sendAction(INPUT.UP);
+            moved = true;
+        }
         if (InputHandler.keyPressed.includes(Controller.InputConfig.DOWN)) {
-            Controller.sendAction(INPUT.DOWN)
-        }        
+            newPos.y += SPEED;
+            Controller.sendAction(INPUT.DOWN);
+            moved = true;
+        }
         if (InputHandler.keyPressed.includes(Controller.InputConfig.LEFT)) {
-            Controller.sendAction(INPUT.LEFT)
-        }        
+            newPos.x -= SPEED;
+            Controller.sendAction(INPUT.LEFT);
+            moved = true;
+        }
         if (InputHandler.keyPressed.includes(Controller.InputConfig.RIGHT)) {
-            Controller.sendAction(INPUT.RIGHT)
+            newPos.x += SPEED;
+            Controller.sendAction(INPUT.RIGHT);
+            moved = true;
         }
 
+        if (!moved) return;
+
+        // Client-side collision (previsão)
+        const getTile = (worldX: number, worldY: number): number | null => {
+            const tile = TileMap.getTile(worldX, worldY);
+            return tile ?? null;
+        };
+
+        // Testa X primeiro
+        if (!checkTileCollision(newPos.x, myPlayer.y, w, h, getTile)) {
+            myPlayer.x = newPos.x;
+        }
+        // Testa Y
+        if (!checkTileCollision(myPlayer.x, newPos.y, w, h, getTile)) {
+            myPlayer.y = newPos.y;
+        }
+
+        // Suavização visual
+        socket.emit("requestPlayerUpdate", myPlayer);
     }
 }

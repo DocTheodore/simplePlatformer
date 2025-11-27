@@ -10,3 +10,10 @@ export enum INPUT {
     MOUSE_A,
     MOUSE_B,
 }
+
+export const PLAYER = {
+    HEIGHT: 60,
+    WIDTH: 30,
+}
+
+export const SOLID_TILES = new Set<number>([1, 2, 3]);
