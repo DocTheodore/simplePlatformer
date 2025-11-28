@@ -1,3 +1,4 @@
+
 export const CHUNK_SIZE = 64;
 export const TILE_SIZE = 16;
 
@@ -7,6 +8,8 @@ export enum INPUT {
     LEFT,
     RIGHT,
     JUMP,
+}
+export enum MOUSE_ID {
     MOUSE_A,
     MOUSE_B,
 }

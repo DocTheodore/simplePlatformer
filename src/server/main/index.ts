@@ -5,7 +5,7 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import { getLocalIpAddress } from "../../shared/utils/ipaddress.js";
 import { WorldManager } from "../world/world.js";
-import { Player } from "../../shared/types.js";
+import { __defaultPlayer, Player } from "../../shared/types.js";
 import { CHUNK_SIZE, INPUT, PLAYER } from "../../shared/constants.js";
 import { checkTileCollision } from "../../shared/physics/collision.js";
 
@@ -43,7 +43,10 @@ app.get("/", (req, res) => {
 io.on('connection', (socket) => {
   const clientIp = socket.handshake.address.split('::ffff:')[1]
   socket.emit("hello", clientIp);
-  NetworkPlayers.set(clientIp, { x:0, y:0, color:`hsl(${Math.floor(Math.random() * 360)}, 100%, 50%)` });
+
+  const newPlayer = __defaultPlayer
+  newPlayer.Stats.color = `hsl(${Math.floor(Math.random() * 360)}, 100%, 50%)`;
+  NetworkPlayers.set(clientIp, newPlayer);
   io.emit("playerData", Object.fromEntries(NetworkPlayers.entries()) );
 
   socket.on("teste", () => {
@@ -75,13 +78,12 @@ io.on('connection', (socket) => {
     
     const Speed = 10;
 
-    let newX = thisPlayer.x;
-    let newY = thisPlayer.y;
+    let newPos = thisPlayer.Movement.pos;
 
-    if(actionId === INPUT.UP) { newY -= Speed }
-    if(actionId === INPUT.DOWN) { newY += Speed }
-    if(actionId === INPUT.LEFT) { newX -= Speed }
-    if(actionId === INPUT.RIGHT) { newX += Speed }
+    if(actionId === INPUT.UP) { newPos.y -= Speed }
+    if(actionId === INPUT.DOWN) { newPos.y += Speed }
+    if(actionId === INPUT.LEFT) { newPos.x -= Speed }
+    if(actionId === INPUT.RIGHT) { newPos.x += Speed }
 
     const getTile = (worldX: number, worldY: number): number | null => {
         const xChunk = Math.floor(worldX / CHUNK_SIZE);
@@ -98,12 +100,12 @@ io.on('connection', (socket) => {
     }
 
     // Checar no X
-    let collision = checkTileCollision(newX, thisPlayer.y, PLAYER.WIDTH, PLAYER.HEIGHT, getTile);
-    if (!collision) thisPlayer.x = newX;
+    let collision = checkTileCollision(newPos.x, thisPlayer.Movement.pos.y, PLAYER.WIDTH, PLAYER.HEIGHT, getTile);
+    if (!collision) thisPlayer.Movement.pos.x = newPos.x;
 
     // Checar no Y
-    collision = checkTileCollision(thisPlayer.x, newY, PLAYER.WIDTH, PLAYER.HEIGHT, getTile);
-    if (!collision) thisPlayer.y = newY;
+    collision = checkTileCollision(thisPlayer.Movement.pos.x, newPos.y, PLAYER.WIDTH, PLAYER.HEIGHT, getTile);
+    if (!collision) thisPlayer.Movement.pos.y = newPos.y;
 
     NetworkPlayers.set(clientIp, thisPlayer);
   })

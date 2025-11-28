@@ -115,8 +115,8 @@ function gameUpdate() {
     Controller.Update();
 
     if(myPlayer) {
-        Player.x = myPlayer.x;
-        Player.y = myPlayer.y;
+        Player.x = myPlayer.Movement.pos.x;
+        Player.y = myPlayer.Movement.pos.y;
     }
 
     const WorldX = Math.floor(Player.x / TILE_SIZE);
@@ -146,7 +146,7 @@ function gameRender() {
     // Render
     WorldRender.render();
     localPlayers.forEach((player) => {
-        EntityRender.render(player.x, player.y, Player.w, Player.h, player.color);
+        EntityRender.render(player.Movement.pos.x, player.Movement.pos.y, Player.w, Player.h, player.Stats.color);
     });
 }
 

@@ -47,7 +47,7 @@ export class Controller {
         const w = PLAYER.WIDTH, h = PLAYER.HEIGHT;
 
         let moved = false;
-        const newPos = { x: myPlayer.x, y: myPlayer.y };
+        const newPos = { x: myPlayer.Movement.pos.x, y: myPlayer.Movement.pos.y };
 
         if (InputHandler.keyPressed.includes(Controller.InputConfig.UP)) {
             newPos.y -= SPEED;
@@ -79,12 +79,12 @@ export class Controller {
         };
 
         // Testa X primeiro
-        if (!checkTileCollision(newPos.x, myPlayer.y, w, h, getTile)) {
-            myPlayer.x = newPos.x;
+        if (!checkTileCollision(newPos.x, myPlayer.Movement.pos.y, w, h, getTile)) {
+            myPlayer.Movement.pos.x = newPos.x;
         }
         // Testa Y
-        if (!checkTileCollision(myPlayer.x, newPos.y, w, h, getTile)) {
-            myPlayer.y = newPos.y;
+        if (!checkTileCollision(myPlayer.Movement.pos.x, newPos.y, w, h, getTile)) {
+            myPlayer.Movement.pos.y = newPos.y;
         }
 
         // Suavização visual
