@@ -20,3 +20,16 @@ export const PLAYER = {
 }
 
 export const SOLID_TILES = new Set<number>([1, 2, 3]);
+
+export enum COMPONENTS {
+    POSITION,
+    VELOCITY,
+    FACING,
+    ONGROUND,
+    HEALTH,
+    COLOR,
+    INPUTKEY,
+    INPUTMOUSE,
+    PLAYERTAG,
+    CHUNKPOS,
+}
