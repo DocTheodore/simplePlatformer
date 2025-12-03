@@ -7,7 +7,7 @@ import { getLocalIpAddress } from "../../shared/utils/ipaddress.js";
 import { WorldManager } from "../world/world.js";
 import { __defaultPlayer, Player } from "../../shared/types.js";
 import { CHUNK_SIZE, INPUT, PLAYER } from "../../shared/constants.js";
-import { checkTileCollision } from "../../shared/physics/collision.js";
+import { checkTileCollision } from "../../shared/functions/collision.js";
 
 const app = express();
 const server = createServer(app);

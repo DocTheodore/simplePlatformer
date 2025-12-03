@@ -1,6 +1,7 @@
 
 export const CHUNK_SIZE = 64;
 export const TILE_SIZE = 16;
+export const GRAVITY = 0.5;
 
 export enum INPUT {
     UP,

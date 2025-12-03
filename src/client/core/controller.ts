@@ -1,6 +1,6 @@
 //src/client/core/controller
 import { INPUT, PLAYER } from "../../shared/constants.js";
-import { checkTileCollision } from "../../shared/physics/collision.js";
+import { checkTileCollision } from "../../shared/functions/collision.js";
 import { myPlayer, socket } from "../network/socket.js";
 import { TileMap } from "../world/tilemapHandler.js";
 import { InputHandler } from "./inputHandler.js";
