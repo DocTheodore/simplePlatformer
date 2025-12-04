@@ -8,6 +8,9 @@ import { WorldManager } from "../world/world.js";
 import { __defaultPlayer, Player } from "../../shared/types.js";
 import { CHUNK_SIZE, INPUT, PLAYER } from "../../shared/constants.js";
 import { checkTileCollision } from "../../shared/functions/collision.js";
+import { GameEntities } from "../../shared/classes/entity.js";
+import { C } from "../../shared/types/components.js";
+import { networkMovementSystem } from "../ECS/networkMovementSistem.js";
 
 const app = express();
 const server = createServer(app);
@@ -17,7 +20,8 @@ const SERVER_PORT = 3000;
 // Debug -------
 const NetworkPlayers = new Map<string, Player>();
 
-const World = new WorldManager();
+const NetworkWorld = new WorldManager();
+const NetworkEntities = new GameEntities();
 
 // Diretórios
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
@@ -44,6 +48,15 @@ io.on('connection', (socket) => {
   const clientIp = socket.handshake.address.split('::ffff:')[1]
   socket.emit("hello", clientIp);
 
+  NetworkEntities.create(clientIp);
+  NetworkEntities.add(clientIp, C.PlayerTag, { });
+  NetworkEntities.add(clientIp, C.Position, {x: 0, y: 0});
+  NetworkEntities.add(clientIp, C.Velocity, {x: 0, y: 0});
+  NetworkEntities.add(clientIp, C.Facing, {left: false});
+  NetworkEntities.add(clientIp, C.OnGround, {value: false});
+
+  networkMovementSystem(NetworkEntities);
+
   const newPlayer = __defaultPlayer
   newPlayer.Stats.color = `hsl(${Math.floor(Math.random() * 360)}, 100%, 50%)`;
   NetworkPlayers.set(clientIp, newPlayer);
@@ -59,7 +72,7 @@ io.on('connection', (socket) => {
     for (let dy = -radius; dy <= radius; dy++) {
       const cx = xChunk + dx;
       const cy = yChunk + dy;
-      const tiles = World.getChunk(cx, cy);
+      const tiles = NetworkWorld.getChunk(cx, cy);
       socket.emit("chunkData", {xChunk: cx, yChunk: cy, tiles: tiles.buffer}, { binary: true });
     }
     }
@@ -74,6 +87,7 @@ io.on('connection', (socket) => {
   socket.on("playerAction", (data) => {
     const { actionId } = data;
     const thisPlayer = NetworkPlayers.get(clientIp);
+    networkMovementSystem(NetworkEntities);
     if(!thisPlayer) return 
     
     const Speed = 10;
@@ -88,7 +102,7 @@ io.on('connection', (socket) => {
     const getTile = (worldX: number, worldY: number): number | null => {
         const xChunk = Math.floor(worldX / CHUNK_SIZE);
         const yChunk = Math.floor(worldY / CHUNK_SIZE);
-        const chunk = World.getChunk(xChunk, yChunk);
+        const chunk = NetworkWorld.getChunk(xChunk, yChunk);
         if (!chunk) { return null }
 
         // Garante que % funcione com números negativos
@@ -114,6 +128,7 @@ io.on('connection', (socket) => {
   socket.on("disconnect", () => {
     console.log("Cliente desconectado", clientIp);
     NetworkPlayers.delete(clientIp);
+    NetworkEntities.destroy(clientIp);
     io.emit("playerData", Object.fromEntries(NetworkPlayers.entries()) );
   });
 });
@@ -123,7 +138,7 @@ setInterval(() => {
 }, 15);
 
 setInterval(() => {
-    World.autoSaveChunks();
+    NetworkWorld.autoSaveChunks();
 }, 10_000);
 
 try{

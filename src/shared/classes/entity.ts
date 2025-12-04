@@ -1,8 +1,8 @@
-import { EntityId } from "../types/components";
+import { Components, EntityId } from "../types/components.js";
 
 export type ComponentsMap = Record<string, any>;
 
-export class Entities {
+export class GameEntities {
     private entities = new Map<EntityId, ComponentsMap>();
 
     create(id:EntityId) {

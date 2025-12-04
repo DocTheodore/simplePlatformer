@@ -1,4 +1,4 @@
-import { INPUT, MOUSE_ID } from "../constants";
+import { INPUT, MOUSE_ID } from "../constants.js";
 
 // shared/types/entities
 export type EntityId = string;
@@ -28,3 +28,16 @@ export type Components = {
     playerTag?: PlayerTag  
     chunkPos?: ChunkPos   
 };
+
+export const C = {
+    Position: 'position',
+    Velocity: 'velocity',
+    Facing: 'facing',
+    OnGround: 'onGround',
+    Health: 'health',
+    Color: 'color',
+    InputKey: 'inputKey',
+    InputMouse: 'inputMouse',
+    PlayerTag: 'playerTag',
+    ChunkPos: 'chunkPos',
+}
