@@ -1,8 +1,9 @@
+//src/shared/classes/entity.ts
 import { Components, EntityId } from "../types/components.js";
 
 export type ComponentsMap = Record<string, any>;
 
-export class GameEntities {
+export class EntityManager {
     private entities = new Map<EntityId, ComponentsMap>();
 
     create(id:EntityId) {

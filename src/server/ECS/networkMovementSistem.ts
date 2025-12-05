@@ -1,22 +1,21 @@
-import { GameEntities } from "../../shared/classes/entity.js";
+//src/server/ECS/networkMovementSistem.ts
+import { EntityManager } from "../../shared/classes/entity.js";
 import { C } from "../../shared/types/components.js";
 
-export function networkMovementSystem(entities: GameEntities): void {
-    const movementEntities = entities.query(C.Position, C.Velocity, C.Facing, C.OnGround);
+export function networkMovementSystem(entities: EntityManager): void {
+    const movementEntities = entities.query(C.Position, C.Velocity, C.Facing, C.OnGround, C.Stats);
 
     for(const [id, component] of movementEntities) {
-        // Teste individual
-        console.log(id, component[C.Position]);    
-        console.log(id, component[C.Velocity]);
-        console.log(' ')
-        
-        component[C.Velocity].y = 5;
-        component[C.Position].y += component[C.Velocity].y; 
-        component[C.Position].y += component[C.Velocity].y; 
-        component[C.Position].y += component[C.Velocity].y; 
+        const pos = component[C.Position];
+        const vel = component[C.Velocity];
+        const stats = component[C.Stats];
 
-        console.log(id, component[C.Position]);    
-        console.log(id, component[C.Velocity]);
+        // Teste individual        
+        vel.x = stats.speed;
+        pos.x += vel.x;
+
+        console.log('Velocity', id, component[C.Velocity]);
+        console.log('Position' ,id, component[C.Position]);    
         console.log(' ')
 
     }
