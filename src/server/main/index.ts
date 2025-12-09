@@ -59,7 +59,7 @@ io.on('connection', (socket) => {
 
   networkMovementSystem(NetworkEntities);
 
-  io.emit("fullEntities", Object.fromEntries(NetworkEntities.snapshot()) );
+  io.emit("fullEntities", NetworkEntities.getDelta(__previousNetworkEntities) );
 
   socket.on("teste", () => {
     console.log("Ouvindo cliente", clientIp);
@@ -133,20 +133,20 @@ io.on('connection', (socket) => {
     if (!collision) thisPlayer.Movement.pos.y = newPos.y;
 
     NetworkPlayers.set(clientIp, thisPlayer); */
-  })
+  });
 
   // Lidar com a desconexão ================================
   socket.on("disconnect", () => {
     console.log("Cliente desconectado", clientIp);
     NetworkEntities.destroy(clientIp);
     
-    io.emit("deltaEntities", Object.fromEntries(NetworkEntities.getDelta(__previousNetworkEntities)) );
+    io.emit("deltaEntities", NetworkEntities.getDelta(__previousNetworkEntities) );
     __previousNetworkEntities = NetworkEntities.snapshot();
   });
 });
 
 setInterval(() => {
-    io.emit("deltaEntities", Object.fromEntries(NetworkEntities.getDelta(__previousNetworkEntities)) );
+    io.emit("deltaEntities", NetworkEntities.getDelta(__previousNetworkEntities) );
     __previousNetworkEntities = NetworkEntities.snapshot();
 }, 15);
 

@@ -16,6 +16,10 @@ export class EntityManager {
         return id;
     }
 
+    find(id:EntityId) {
+        return this.entities.has(id);
+    }
+
     add<T>(id:EntityId, type:string, component: T) {
         const ent = this.entities.get(id);
         if (ent) ent[type] = component;
@@ -24,6 +28,10 @@ export class EntityManager {
     remove(id:EntityId, type:string) {
         const ent = this.entities.get(id);
         if (ent) delete ent[type];
+    }
+
+    clear(): void {
+        this.entities.clear();
     }
 
     get<T>(id:EntityId, type:string): T | undefined {

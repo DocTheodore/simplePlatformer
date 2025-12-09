@@ -1,3 +1,4 @@
+import { EntityManager } from "../../shared/classes/entity.js";
 import { Player } from "../../shared/types.js";
 import { TileMap } from "../world/tilemapHandler.js";
 
@@ -7,6 +8,8 @@ export const socket = io(); // Conexão
 export let ipKey = '';
 export let myPlayer:Player | undefined = undefined // temporario
 export let localPlayers = new Map<string, Player>();
+
+export const LocalEntities = new EntityManager();
 
 // Eventos do client ================================
 socket.on('hello', (text:string) => {
@@ -22,6 +25,42 @@ socket.on('playerData', (serverData:any) => {
     localPlayers = new Map(Object.entries(data));
     myPlayer = localPlayers.get(ipKey) as Player;
 });
+socket.on('fullEntities', (fullSnapshot: Record<string, any>) => {
+    LocalEntities.clear();
+
+    for (const [id, components] of Object.entries(fullSnapshot)) {
+        LocalEntities.create(id);
+        for (const [type, component] of Object.entries(components)) {
+            LocalEntities.add(id, type, component);
+        }
+    }
+
+});
+socket.on('deltaEntities', (delta: any[]) => {
+    if(!Array.isArray(delta)) return;
+
+    for (const change of delta) {
+        const {id, $removed, ...components} = change;
+
+        if ($removed) {
+            LocalEntities.destroy(id);
+            continue;
+        }
+
+        if(!LocalEntities.find(id)) {
+            LocalEntities.create(id);
+        }
+
+        for (const [type, component] of Object.entries(components)) {
+            if (component !== undefined) {
+                LocalEntities.add(id, type, component);
+            } else {
+                LocalEntities.remove(id, type);
+            }
+        }
+    }
+
+});
 
 // Metodos do client ================================
 export const testeNet = () => {
@@ -33,4 +72,24 @@ export const requestChunks = (xChunk:number, yChunk:number, radius:number = 0) =
 export const playerUpdate = (playerData: Player) => {
     //console.log('a');
     socket.emit("requestPlayerUpdate", playerData);
+}
+
+// Funções locais ===================================
+function applyDelta(delta: any[]) {
+    for (const change of delta) {
+        const {id, $removed, ...components} = change;
+
+        if ($removed) {
+            LocalEntities.destroy(id);
+            continue;
+        }
+
+        for (const [type, component] of components) {
+            if(!LocalEntities.has(id, type)) {
+                LocalEntities.add(id, type, component);
+            } else {
+                LocalEntities.get(id, type);
+            }
+        }
+    }
 }
