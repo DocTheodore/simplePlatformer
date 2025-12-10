@@ -55,11 +55,12 @@ io.on('connection', (socket) => {
   NetworkEntities.add(clientIp, C.Velocity, {x: 0, y: 0});
   NetworkEntities.add(clientIp, C.Facing, {left: false});
   NetworkEntities.add(clientIp, C.OnGround, {value: false});
+  NetworkEntities.add(clientIp, C.InputKey, { pressed: [], clicked: [] });
   NetworkEntities.add(clientIp, C.RenderColor, {color: `hsl(${Math.floor(Math.random() * 360)}, 100%, 50%)`});
 
   networkMovementSystem(NetworkEntities);
 
-  io.emit("fullEntities", NetworkEntities.getDelta(__previousNetworkEntities) );
+  io.emit("fullEntities", NetworkEntities.getDelta(new Map()) );
 
   socket.on("teste", () => {
     console.log("Ouvindo cliente", clientIp);

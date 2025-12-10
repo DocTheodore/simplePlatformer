@@ -41,13 +41,14 @@ export class Controller {
     }
 
     static Update() {
-        if (!myPlayer) return;
+        //if (!myPlayer) return;
 
         const SPEED = 10;
         const w = PLAYER.WIDTH, h = PLAYER.HEIGHT;
 
         let moved = false;
-        const newPos = { x: myPlayer.Movement.pos.x, y: myPlayer.Movement.pos.y };
+        //const newPos = { x: myPlayer.Movement.pos.x, y: myPlayer.Movement.pos.y };
+        const newPos = { x: 0, y: 0 };
 
         if (InputHandler.keyPressed.includes(Controller.InputConfig.UP)) {
             newPos.y -= SPEED;
@@ -78,6 +79,7 @@ export class Controller {
             return tile ?? null;
         };
 
+        /* 
         // Testa X primeiro
         if (!checkTileCollision(newPos.x, myPlayer.Movement.pos.y, w, h, getTile)) {
             myPlayer.Movement.pos.x = newPos.x;
@@ -85,7 +87,7 @@ export class Controller {
         // Testa Y
         if (!checkTileCollision(myPlayer.Movement.pos.x, newPos.y, w, h, getTile)) {
             myPlayer.Movement.pos.y = newPos.y;
-        }
+        } */
 
         // Suavização visual
         socket.emit("requestPlayerUpdate", myPlayer);

@@ -64,6 +64,7 @@ export class EntityManager {
             const changes:any = {};
 
             for (const key in current) {
+                //console.log('current:', current[key], 'prev:', prev[key])
                 if(JSON.stringify(current[key]) !== JSON.stringify(prev[key])) {
                     changes[key] = current[key];
                 }
@@ -72,7 +73,6 @@ export class EntityManager {
             if(Object.keys(changes).length > 0 || !previous.has(id)) {
                 delta.push({id, ...changes});
             }
-
         }
 
         for(const id of previous.keys()){
@@ -81,10 +81,19 @@ export class EntityManager {
             }
         }
 
+        /* if (delta.length > 0) {
+            console.log('=== delta ===');
+            console.log(delta);
+        } */
+
         return delta;
     }
 
     snapshot() {
-        return new Map(this.entities);
+        const snapshot = new Map<EntityId, ComponentsMap>();
+        for (const [id, components] of this.entities) {
+            snapshot.set(id, structuredClone(components));
+        }
+        return snapshot;
     }
 }
