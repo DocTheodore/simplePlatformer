@@ -21,3 +21,8 @@ export const PLAYER = {
 }
 
 export const SOLID_TILES = new Set<number>([1, 2, 3]);
+
+export const COMP = { // Max = 128
+    TRANSFORM: 1 << 0,
+    VELOCITY: 1 << 1,
+} as const;

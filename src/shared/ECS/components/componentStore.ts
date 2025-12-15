@@ -18,7 +18,7 @@ export abstract class ComponentStore {
         return index;
     }
 
-    remove(entity:number): void {
+    remove(entity:number): void {                                                                       
         const index = this.sparse[entity];
         const lastIndex = this.dense.length-1;
 
