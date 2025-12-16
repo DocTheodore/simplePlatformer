@@ -1,3 +1,4 @@
+//Shared/ECS/components/transformStore.ts
 import { ComponentStore } from "./componentStore.js";
 
 type transformType = {
@@ -13,7 +14,7 @@ export class TransformStore extends ComponentStore {
     posY: number[] = [];
     sizeX: number[] = [];
     sizeY: number[] = [];
-    rotation: number[] = []
+    rotation: number[] = [];
 
     static defaultTransform = {
         posX: 0,

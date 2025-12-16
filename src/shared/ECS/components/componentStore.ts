@@ -1,3 +1,4 @@
+//shared/ECS/components/componentStore
 export abstract class ComponentStore {
     dense:number[] = [];
     sparse:number[] = [];
@@ -62,3 +63,9 @@ export abstract class ComponentStore {
     abstract serialize(entity: number): Object;
     abstract copy(indexA:number, indexB:number): void;
 }
+
+/*/ --- Padrão das Stores 
+
+
+
+/*/

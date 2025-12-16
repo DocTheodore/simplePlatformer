@@ -1,3 +1,4 @@
+//shared/ECS/entityManager.ts
 export class EntityManager {
     private nextId:number = 0;
     private recycledIds:number[] = [];

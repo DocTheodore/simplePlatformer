@@ -1,3 +1,4 @@
+//shared/ECS/componentManager.ts
 import { ComponentStore } from "./components/componentStore";
 
 export class ComponentManager {
