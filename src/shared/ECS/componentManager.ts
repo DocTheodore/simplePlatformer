@@ -1,11 +1,11 @@
 //shared/ECS/componentManager.ts
-import { ComponentStore } from "./components/componentStore";
+import { ComponentStore } from "./components/_componentStore";
 
 export class ComponentManager {
-    private stores = new Map<number, ComponentStore>();
+    private stores = new Map<number, ComponentStore<any>>();
     private entityMasks:number[] = [];
 
-    registerComponent(componentId: number, store: ComponentStore) {
+    registerComponent<T>(componentId: number, store: ComponentStore<T>) {
         this.stores.set(componentId, store);
     }
 
@@ -32,7 +32,7 @@ export class ComponentManager {
         return (this.entityMasks[entity] & componentId) !== 0;
     }
 
-    getStore<T extends ComponentStore>(componentId: number): T {
+    getStore<T extends ComponentStore<any>>(componentId: number): T {
         return this.stores.get(componentId) as T;
     }
 
@@ -43,5 +43,6 @@ export class ComponentManager {
                 this.entityMasks[entity] &= ~componentId;
             }
         }
+        this.entityMasks[entity] = 0;
     }
 }

@@ -1,15 +1,7 @@
 //Shared/ECS/components/transformStore.ts
-import { ComponentStore } from "./componentStore.js";
-
-type transformType = {
-    posX: number,
-    posY: number,
-    sizeX: number,
-    sizeY: number,
-    rotation: number,
-}
-
-export class TransformStore extends ComponentStore {
+import { TransformType } from "../../types/components.js";
+import { ComponentStore } from "./_componentStore.js";
+export class TransformStore extends ComponentStore<TransformType> {
     posX: number[] = [];
     posY: number[] = [];
     sizeX: number[] = [];
@@ -48,7 +40,7 @@ export class TransformStore extends ComponentStore {
 
     // --------------------------- Abstract -------------------------
 
-    set(entity:number, data:transformType): void {
+    set(entity:number, data:TransformType): void {
         const index = this.indexOf(entity);
         this.posX[index] = data.posX;
         this.posY[index] = data.posY;
@@ -57,13 +49,7 @@ export class TransformStore extends ComponentStore {
         this.rotation[index] = data.rotation;
     }
 
-    read(index: number): {
-        posX: number,
-        posY: number,
-        sizeX: number,
-        sizeY: number,
-        rotation: number,
-    } {
+    read(index: number): TransformType {
         return {
             posX: this.posX[index],
             posY: this.posY[index],
@@ -73,13 +59,7 @@ export class TransformStore extends ComponentStore {
         }
     }
 
-    serialize(entity: number): {
-        posX: number,
-        posY: number,
-        sizeX: number,
-        sizeY: number,
-        rotation: number,
-    } {
+    serialize(entity: number): TransformType {
         const index = this.indexOf(entity);
         return this.read(index);
     }

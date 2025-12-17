@@ -1,7 +1,14 @@
+import { ComponentManager } from "./componentManager";
+
 //shared/ECS/entityManager.ts
 export class EntityManager {
     private nextId:number = 0;
     private recycledIds:number[] = [];
+    private componentManager: ComponentManager;
+
+    constructor(comp: ComponentManager) {
+        this.componentManager = comp;
+    }
 
     create():number {
         if(this.recycledIds.length > 0) {
@@ -12,5 +19,6 @@ export class EntityManager {
 
     destroy(entity: number) {
         this.recycledIds.push(entity);
+        this.componentManager.destroyEntity(entity);
     }
 }
