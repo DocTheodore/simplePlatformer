@@ -1,62 +1,55 @@
-import { SpriteType, VelocityType } from "../../types/components.js";
+//Shared/ECS/components/velocityStore.ts
+import { TypedArray } from "../../types.js";
+import { VelocityType } from "../../types/components.js";
 import { ComponentStore } from "./_componentStore.js";
 
-export class VelocityStore extends ComponentStore<VelocityType> {
-    velX: number[] = [];
-    velY: number[] = [];
+export class velocityStore extends ComponentStore<VelocityType> {
+    protected capacity: number = 256;
+    protected fields: TypedArray[] = [];
 
-    static defaultVelocity = {
-        velX: 0,
-        velY: 0,
-    }
+    // Proprieades
+    velX: Float32Array;
+    velY: Float32Array;
 
-    constructor() {super()}
+    constructor() {
+        super();
+        this.velX = new Float32Array(this.capacity);
+        this.velY = new Float32Array(this.capacity);
 
-    add(entity:number): number {
-        const index = super.add(entity);
+        this.fields = [
+            this.velX,
+            this.velY,
+        ]
 
-        this.velX[index] = VelocityStore.defaultVelocity.velX;
-        this.velY[index] = VelocityStore.defaultVelocity.velY;
-
-        return index;
-    }
-
-    remove(entity:number): void {
-        const index = this.indexOf(entity);
-        const lastIndex = this.dense.length - 1;
-
-        this.copy(index, lastIndex);
-        super.remove(entity);
+        Object.seal(this);
     }
 
     // --------------------------- Abstract -------------------------
 
-    set(entity:number, data:VelocityType): void {
-        const index = this.indexOf(entity);
+    set(index:number, data:VelocityType): void {
         this.velX[index] = data.velX;
         this.velY[index] = data.velY;
     }
 
-    read(index: number): VelocityType {
+    read(index: number): VelocityType { // Só para debug
         return {
             velX: this.velX[index],
             velY: this.velY[index],
         }
     }
 
-    serialize(entity: number): VelocityType {
-        const index = this.indexOf(entity);
-        return this.read(index);
+    protected onResize(): void {
+        this.velX = this.resizeArray(this.velX);
+        this.velY = this.resizeArray(this.velY);
+
+        this.fields = [
+            this.velX,
+            this.velY,
+        ]
     }
 
-    copy(indexA: number, indexB: number): void {
-        const tempVelX = this.velX[indexA];
-        const tempVelY = this.velY[indexA];
-
-        this.velX[indexA] = this.velX[indexB];
-        this.velY[indexA] = this.velY[indexB];
-
-        this.velX[indexB] = tempVelX;
-        this.velY[indexB] = tempVelY;
+    protected setDefault(index: number): void {
+        this.velX[index] = 0;
+        this.velY[index] = 0;
     }
 }

@@ -1,86 +1,68 @@
+//Shared/ECS/components/spriteStore.ts
+import { TypedArray } from "../../types.js";
 import { SpriteType } from "../../types/components.js";
 import { ComponentStore } from "./_componentStore.js";
 
-export class SpriteStore extends ComponentStore<SpriteType> {
-    spriteId: number[] = [];
-    colorId: number[] = [];
-    layer: number[] = [];
-    facingLeft: boolean[] = [];
-    visible: boolean[] = [];
+export class spriteStore extends ComponentStore<SpriteType> {
+    protected capacity: number = 256;
+    protected fields: TypedArray[] = [];
 
-    static defaultSprite = {
-        spriteId: 0,
-        colorId: 0,
-        layer: 0,
-        facingLeft: false,
-        visible: false,
-    }
+    // Proprieades
+    spriteId: Uint16Array;
+    layer: Uint8Array;
+    flipped: Uint8Array; // 0 | 1
+    visible: Uint8Array; // 0 | 1
 
-    constructor() {super()}
+    constructor() {
+        super();
+        this.spriteId = new Uint16Array(this.capacity);
+        this.layer = new Uint8Array(this.capacity);
+        this.flipped = new Uint8Array(this.capacity);
+        this.visible = new Uint8Array(this.capacity);
 
-    add(entity:number): number {
-        const index = super.add(entity);
+        this.fields = [
+            this.spriteId,
+            this.layer,
+            this.flipped,
+            this.visible,
+        ]
 
-        this.spriteId[index] = SpriteStore.defaultSprite.spriteId;
-        this.colorId[index] = SpriteStore.defaultSprite.colorId;
-        this.layer[index] = SpriteStore.defaultSprite.layer;
-        this.facingLeft[index] = SpriteStore.defaultSprite.facingLeft;
-        this.visible[index] = SpriteStore.defaultSprite.visible;
-
-        return index;
-    }
-
-    remove(entity:number): void {
-        const index = this.indexOf(entity);
-        const lastIndex = this.dense.length - 1;
-
-        this.copy(index, lastIndex);
-        super.remove(entity);
+        Object.seal(this);
     }
 
     // --------------------------- Abstract -------------------------
 
-    set(entity:number, data:SpriteType): void {
-        const index = this.indexOf(entity);
+    set(index:number, data:SpriteType): void {
         this.spriteId[index] = data.spriteId;
-        this.colorId[index] = data.colorId;
-        this.layer[index] = data.layer;
-        this.facingLeft[index] = data.facingLeft;
-        this.visible[index] = data.visible;
     }
 
-    read(index: number): SpriteType {
+    read(index: number): SpriteType { // Só para debug
         return {
             spriteId: this.spriteId[index],
-            colorId: this.colorId[index],
             layer: this.layer[index],
-            facingLeft: this.facingLeft[index],
+            flipped: this.flipped[index],
             visible: this.visible[index],
         }
     }
 
-    serialize(entity: number): SpriteType {
-        const index = this.indexOf(entity);
-        return this.read(index);
+    protected onResize(): void {
+        this.spriteId = this.resizeArray(this.spriteId);
+        this.layer = this.resizeArray(this.layer);
+        this.flipped = this.resizeArray(this.flipped);
+        this.visible = this.resizeArray(this.visible);
+
+        this.fields = [
+            this.spriteId,
+            this.layer,
+            this.flipped,
+            this.visible,
+        ]
     }
 
-    copy(indexA: number, indexB: number): void {
-        const tempSpriteId = this.spriteId[indexA];
-        const tempColorId = this.colorId[indexA];
-        const tempLayer = this.layer[indexA];
-        const tempFacingLeft = this.facingLeft[indexA];
-        const tempVisible = this.visible[indexA];
-
-        this.spriteId[indexA] = this.spriteId[indexB];
-        this.colorId[indexA] = this.colorId[indexB];
-        this.layer[indexA] = this.layer[indexB];
-        this.facingLeft[indexA] = this.facingLeft[indexB];
-        this.visible[indexA] = this.visible[indexB];
-
-        this.spriteId[indexB] = tempSpriteId;
-        this.colorId[indexB] = tempColorId;
-        this.layer[indexB] = tempLayer;
-        this.facingLeft[indexB] = tempFacingLeft;
-        this.visible[indexB] = tempVisible;
+    protected setDefault(index: number): void {
+        this.spriteId[index] = 0;
+        this.layer[index] = 0;
+        this.flipped[index] = 0;
+        this.visible[index] = 0;
     }
 }

@@ -13,14 +13,13 @@ export interface VelocityType { // [1]
 }
 export interface SpriteType { // [2]
     spriteId: number;
-    colorId: number;
     layer: number;
-    facingLeft: boolean;
-    visible: boolean;
+    flipped: number;
+    visible: number;
 }
 
-export const COMP = { // Max = 32
-    TRANSFORM: 1 << 0,
-    VELOCITY: 1 << 1,
-    SPRITE: 1 << 2,
-} as const;
+export const enum ComponentId { // Max = 32
+    Transform = 1 << 0,
+    Velocity  = 1 << 1,
+    Sprite    = 1 << 2,
+}

@@ -1,47 +1,40 @@
 //Shared/ECS/components/transformStore.ts
+import { TypedArray } from "../../types.js";
 import { TransformType } from "../../types/components.js";
 import { ComponentStore } from "./_componentStore.js";
 export class TransformStore extends ComponentStore<TransformType> {
-    posX: number[] = [];
-    posY: number[] = [];
-    sizeX: number[] = [];
-    sizeY: number[] = [];
-    rotation: number[] = [];
+    protected capacity: number = 256;
+    protected fields: TypedArray[] = [];
 
-    static defaultTransform = {
-        posX: 0,
-        posY: 0,
-        sizeX: 0,
-        sizeY: 0,
-        rotation: 0,
-    }
+    // Proprieades
+    posX: Float32Array;
+    posY: Float32Array;
+    sizeX: Float32Array;
+    sizeY: Float32Array;
+    rotation: Float32Array;
 
-    constructor() {super()}
+    constructor() {
+        super();
+        this.posX = new Float32Array(this.capacity);
+        this.posY = new Float32Array(this.capacity);
+        this.sizeX = new Float32Array(this.capacity);
+        this.sizeY = new Float32Array(this.capacity);
+        this.rotation = new Float32Array(this.capacity);
 
-    add(entity:number): number {
-        const index = super.add(entity);
+        this.fields = [
+            this.posX,
+            this.posY, 
+            this.sizeX, 
+            this.sizeY, 
+            this.rotation
+        ]
 
-        this.posX[index] = TransformStore.defaultTransform.posX;
-        this.posY[index] = TransformStore.defaultTransform.posY;
-        this.sizeX[index] = TransformStore.defaultTransform.sizeX;
-        this.sizeY[index] = TransformStore.defaultTransform.sizeY;
-        this.rotation[index] = TransformStore.defaultTransform.rotation;
-
-        return index;
-    }
-
-    remove(entity:number): void {
-        const index = this.indexOf(entity);
-        const lastIndex = this.dense.length - 1;
-
-        this.copy(index, lastIndex);
-        super.remove(entity);
+        Object.seal(this);
     }
 
     // --------------------------- Abstract -------------------------
 
-    set(entity:number, data:TransformType): void {
-        const index = this.indexOf(entity);
+    set(index:number, data:TransformType): void {
         this.posX[index] = data.posX;
         this.posY[index] = data.posY;
         this.sizeX[index] = data.sizeX;
@@ -49,7 +42,7 @@ export class TransformStore extends ComponentStore<TransformType> {
         this.rotation[index] = data.rotation;
     }
 
-    read(index: number): TransformType {
+    read(index: number): TransformType { // Só para debug
         return {
             posX: this.posX[index],
             posY: this.posY[index],
@@ -59,28 +52,27 @@ export class TransformStore extends ComponentStore<TransformType> {
         }
     }
 
-    serialize(entity: number): TransformType {
-        const index = this.indexOf(entity);
-        return this.read(index);
+    protected onResize(): void {
+        this.posX = this.resizeArray(this.posX);
+        this.posY = this.resizeArray(this.posY);
+        this.sizeX = this.resizeArray(this.sizeX);
+        this.sizeY = this.resizeArray(this.sizeY);
+        this.rotation = this.resizeArray(this.rotation);
+
+        this.fields = [
+            this.posX,
+            this.posY,
+            this.sizeX,
+            this.sizeY,
+            this.rotation
+        ];
     }
 
-    copy(indexA: number, indexB: number): void {
-        const tempPosX = this.posX[indexA];
-        const tempPosY = this.posY[indexA];
-        const tempSizeX = this.sizeX[indexA];
-        const tempSizeY = this.sizeY[indexA];
-        const tempRotation = this.rotation[indexA];
-
-        this.posX[indexA] = this.posX[indexB];
-        this.posY[indexA] = this.posY[indexB];
-        this.sizeX[indexA] = this.sizeX[indexB];
-        this.sizeY[indexA] = this.sizeY[indexB];
-        this.rotation[indexA] = this.rotation[indexB];
-
-        this.posX[indexB] = tempPosX;
-        this.posY[indexB] = tempPosY;
-        this.sizeX[indexB] = tempSizeX;
-        this.sizeY[indexB] = tempSizeY;
-        this.rotation[indexB] = tempRotation;
+    protected setDefault(index: number): void {
+        this.posX[index] = 0;
+        this.posY[index] = 0;
+        this.sizeX[index] = 0;
+        this.sizeY[index] = 0;
+        this.rotation[index] = 0;
     }
 }

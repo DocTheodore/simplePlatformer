@@ -2,7 +2,7 @@
 import { ComponentStore } from "./components/_componentStore";
 
 export class ComponentManager {
-    private stores = new Map<number, ComponentStore<any>>();
+    private stores = new Map<number, ComponentStore<unknown>>();
     private entityMasks:number[] = [];
 
     registerComponent<T>(componentId: number, store: ComponentStore<T>) {
@@ -24,12 +24,36 @@ export class ComponentManager {
 
         if(store.has(entity)) {
             store.remove(entity);
-            this.entityMasks[entity] &= ~componentId;
+            this.entityMasks[entity] = (this.entityMasks[entity] ?? 0) & ~componentId;
         }
     }
 
     hasComponent(componentId: number, entity: number): boolean {
         return (this.entityMasks[entity] & componentId) !== 0;
+    }
+
+    queryAll(mask: number): number[] {
+        const result: number[] = []
+        for (let entity=0; entity < this.entityMasks.length; entity++) {
+            if((this.entityMasks[entity] & mask) === mask) {
+                result.push(entity);
+            }
+        }
+        return result;
+    }
+
+    query(mask: number, componentId: number): number[] {
+        const store = this.stores.get(componentId);
+        if (!store) throw 'Componente não registrado';
+
+        const result: number[] = [];
+        for(let index=0; index < store.dense.length; index++) {
+            const entity = store.dense[index];
+            if((this.entityMasks[entity] & mask) === mask) {
+                result.push(entity);
+            }
+        }
+        return result;
     }
 
     getStore<T extends ComponentStore<any>>(componentId: number): T {
@@ -40,7 +64,7 @@ export class ComponentManager {
         for (const [componentId, store] of this.stores) {
             if(store.has(entity)) {
                 store.remove(entity);
-                this.entityMasks[entity] &= ~componentId;
+                this.entityMasks[entity] = (this.entityMasks[entity] ?? 0) & ~componentId;
             }
         }
         this.entityMasks[entity] = 0;

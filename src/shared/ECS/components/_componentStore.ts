@@ -1,12 +1,17 @@
-//shared/ECS/components/componentStore
+//shared/ECS/components/componentStore.ts
+import { TypedArray, TypedArrayConstructor } from "../../types";
+
 export abstract class ComponentStore<T> {
-    protected dense:number[] = [];
-    protected sparse:number[] = [];
+    protected abstract capacity: number;
+    protected abstract fields: TypedArray[];
+    protected sparse: Array<number | undefined> = [];
+    dense:number[] = [];
 
     /*
-     * Dense -> sempre usa index, retorna um entity valido
-     * Sparse -> sempre usa entity, retorna um index valido
-     * [Data] -> sempre usa index, definido pelo componente
+     * Capacity -> tamanho do length dos Arrays em "fields"
+     * fields   -> lista de referencia às propriedades do componente
+     * Sparse   -> sempre usa entity, retorna um index valido
+     * Dense    -> sempre usa index, retorna um entity valido
      */
 
     constructor() {}
@@ -14,40 +19,52 @@ export abstract class ComponentStore<T> {
     add(entity: number): number {
         const index = this.dense.length;
         this.dense.push(entity);
-
         this.sparse[entity] = index;
+
+        this.ensureCapacity(index + 1);
+        this.setDefault(index);
+
         return index;
     }
 
     remove(entity:number): void {                                                                       
-        const index = this.sparse[entity];
-        const lastIndex = this.dense.length-1;
+        const index = this.indexOf(entity);
+        const lastIndex = this.dense.length - 1;
 
-        this.dense[index] = this.dense[lastIndex];
-
-        const movedEntity = this.dense[index];
-        this.sparse[movedEntity] = index;
+        if(index !== lastIndex) {
+            this.copy(index, lastIndex);
+            
+            const movedEntity = this.dense[lastIndex];
+            this.dense[index] = movedEntity;
+            this.sparse[movedEntity] = index;
+        }
 
         this.dense.pop();
-        this.sparse[entity] = undefined!;
+        this.sparse[entity] = undefined;
     }
 
     has(entity:number): boolean {
         return this.sparse[entity] !== undefined;
     }
 
-    get(entity:number): any {
-        const index = this.sparse[entity]
+    get(entity:number): T {
+        const index = this.indexOf(entity);
         return this.read(index);
     }
 
     indexOf(entity:number): number {
-        return this.sparse[entity];
+        const index = this.sparse[entity];
+
+        if(index === undefined) {
+            throw new Error(`Entity ${entity} not found in store`);
+        }
+
+        return index;
     }
 
     swapIndex(entityA:number, entityB:number): void {
-        const indexA = this.sparse[entityA];
-        const indexB = this.sparse[entityB];
+        const indexA = this.indexOf(entityA);
+        const indexB = this.indexOf(entityB);
 
         this.dense[indexA] = entityB;
         this.dense[indexB] = entityA;
@@ -58,66 +75,95 @@ export abstract class ComponentStore<T> {
         this.copy(indexA, indexB);
     }
 
-    abstract set(entity:number, data: T): void;
-    abstract read(index: number): T;
-    abstract serialize(entity: number): T;
-    abstract copy(indexA:number, indexB:number): void;
-}
+    copy(indexA: number, indexB: number): void {
+        for (let i=0; i < this.fields.length; i++) {
+            const field = this.fields[i];
 
-/*/ --- Padrão das Stores 
+            const temp = field[indexA];
+            field[indexA] = field[indexB];
 
-import { CompType } from "../../types/components.js";
-import { ComponentStore } from "./_componentStore.js";
-
-export class CompStore extends ComponentStore {
-    variable: any[] = [];
-
-    static defaultComp = {
-        variable: null,
-    }
-
-    constructor() {super()}
-
-    add(entity:number): number {
-        const index = super.add(entity);
-
-        this.variable[index] = CompStore.defaultComp.variable;
-
-        return index;
-    }
-
-    remove(entity:number): void {
-        const index = this.indexOf(entity);
-        const lastIndex = this.dense.length - 1;
-
-        this.copy(index, lastIndex);
-        super.remove(entity);
-    }
-
-    // --------------------------- Abstract -------------------------
-
-    set(entity:number, data:CompType): void {
-        const index = this.indexOf(entity);
-        this.variable[index] = data.variable;
-    }
-
-    read(index: number): CompType {
-        return {
-            variable: this.variable[index],
+            field[indexB] = temp;
         }
     }
 
-    serialize(entity: number): CompType {
+    serialize(entity: number): T { // Evitar usar fora de snapshot
         const index = this.indexOf(entity);
         return this.read(index);
     }
 
-    copy(indexA: number, indexB: number): void {
-        const tempVariable = this.variable[indexA];
+    protected resizeArray<T extends TypedArray>(originalArray: T): T {
+        const Constructor = originalArray.constructor as TypedArrayConstructor<T>;
 
-        this.variable[indexA] = this.variable[indexB];
+        const newInstance = new Constructor(this.capacity);
+        newInstance.set(originalArray as any);
 
-        this.variable[indexB] = tempVariable;
+        return newInstance;
+    }
+
+    protected ensureCapacity(minCapacity: number): void {
+        if(minCapacity > this.capacity) {
+            this.capacity = Math.max(this.capacity * 2, minCapacity);
+            this.onResize();
+        }
+    }
+
+    abstract set(index: number, data: T): void;
+    abstract read(index: number): T;
+    protected abstract onResize(): void;
+    protected abstract setDefault(index: number): void;
+}
+
+/*/ --- Padrão das Stores
+
+// #component#
+// #props#
+// #TypedArray#
+
+//Shared/ECS/components/#component#Store.ts
+import { TypedArray } from "../../types.js";
+import { #component#Type } from "../../types/components.js";
+import { ComponentStore } from "./_componentStore.js";
+
+export class #component#Store extends ComponentStore<#component#Type> {
+    protected capacity: number = 256;
+    protected fields: TypedArray[] = [];
+
+    // Proprieades
+    #props#: #TypedArray#;
+
+    constructor() {
+        super();
+        this.#props# = new #TypedArray#(this.capacity);
+
+        this.fields = [
+            this.#props#,
+        ]
+
+        Object.seal(this);
+    }
+
+    // --------------------------- Abstract -------------------------
+
+    set(index:number, data:#component#Type): void {
+        this.#props#[index] = data.#props#;
+    }
+
+    read(index: number): #component#Type { // Só para debug
+        return {
+            #props#: this.#props#[index],
+        }
+    }
+
+    protected onResize(): void {
+        this.#props# = this.resizeArray(this.#props#);
+
+        this.fields = [
+            this.#props#,
+        ];
+    }
+
+    protected setDefault(index: number): void {
+        this.#props#[index] = 0;
     }
 }
 
