@@ -1,6 +1,6 @@
+//shared/ECS/entityManager.ts
 import { ComponentManager } from "./componentManager";
 
-//shared/ECS/entityManager.ts
 export class EntityManager {
     private nextId:number = 0;
     private recycledIds:number[] = [];

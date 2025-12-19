@@ -2,10 +2,12 @@
 import { TypedArray, TypedArrayConstructor } from "../../types";
 
 export abstract class ComponentStore<T> {
+
     protected abstract capacity: number;
     protected abstract fields: TypedArray[];
     protected sparse: Array<number | undefined> = [];
     dense:number[] = [];
+    changed: boolean[] = [];
 
     /*
      * Capacity -> tamanho do length dos Arrays em "fields"
