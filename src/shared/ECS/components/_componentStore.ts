@@ -7,13 +7,14 @@ export abstract class ComponentStore<T> {
     protected abstract fields: TypedArray[];
     protected sparse: Array<number | undefined> = [];
     dense:number[] = [];
-    changed: boolean[] = [];
+    changed: Array<number | undefined> = [];
 
     /*
      * Capacity -> tamanho do length dos Arrays em "fields"
      * fields   -> lista de referencia às propriedades do componente
      * Sparse   -> sempre usa entity, retorna um index valido
      * Dense    -> sempre usa index, retorna um entity valido
+     * Changed  -> sempre usa index, retorna um entity que foi mudado (delta)
      */
 
     constructor() {}
@@ -91,6 +92,12 @@ export abstract class ComponentStore<T> {
     serialize(entity: number): T { // Evitar usar fora de snapshot
         const index = this.indexOf(entity);
         return this.read(index);
+    }
+
+    clearChanges() {
+        for(let index=0; index < this.dense.length; index++) {
+            this.changed[index] = undefined;
+        }
     }
 
     protected resizeArray<T extends TypedArray>(originalArray: T): T {
