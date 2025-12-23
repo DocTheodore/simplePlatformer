@@ -41,11 +41,6 @@ export class velocityStore extends ComponentStore<VelocityType> {
     protected onResize(): void {
         this.velX = this.resizeArray(this.velX);
         this.velY = this.resizeArray(this.velY);
-
-        this.fields = [
-            this.velX,
-            this.velY,
-        ]
     }
 
     protected setDefault(index: number): void {

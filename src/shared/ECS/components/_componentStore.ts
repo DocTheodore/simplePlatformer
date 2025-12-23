@@ -7,7 +7,6 @@ export abstract class ComponentStore<T> {
     protected abstract fields: TypedArray[];
     protected sparse: Array<number | undefined> = [];
     dense:number[] = [];
-    changed: Array<number | undefined> = [];
 
     /*
      * Capacity -> tamanho do length dos Arrays em "fields"
@@ -21,12 +20,16 @@ export abstract class ComponentStore<T> {
 
     add(entity: number): number {
         const index = this.dense.length;
+
+        if(index >= this.capacity) {
+            this.capacity *= 2;
+            this.onResize();
+        }
+
         this.dense.push(entity);
         this.sparse[entity] = index;
 
-        this.ensureCapacity(index + 1);
         this.setDefault(index);
-
         return index;
     }
 
@@ -94,12 +97,6 @@ export abstract class ComponentStore<T> {
         return this.read(index);
     }
 
-    clearChanges() {
-        for(let index=0; index < this.dense.length; index++) {
-            this.changed[index] = undefined;
-        }
-    }
-
     protected resizeArray<T extends TypedArray>(originalArray: T): T {
         const Constructor = originalArray.constructor as TypedArrayConstructor<T>;
 
@@ -107,13 +104,6 @@ export abstract class ComponentStore<T> {
         newInstance.set(originalArray as any);
 
         return newInstance;
-    }
-
-    protected ensureCapacity(minCapacity: number): void {
-        if(minCapacity > this.capacity) {
-            this.capacity = Math.max(this.capacity * 2, minCapacity);
-            this.onResize();
-        }
     }
 
     abstract set(index: number, data: T): void;
@@ -165,10 +155,6 @@ export class #component#Store extends ComponentStore<#component#Type> {
 
     protected onResize(): void {
         this.#props# = this.resizeArray(this.#props#);
-
-        this.fields = [
-            this.#props#,
-        ];
     }
 
     protected setDefault(index: number): void {

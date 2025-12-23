@@ -58,14 +58,6 @@ export class TransformStore extends ComponentStore<TransformType> {
         this.sizeX = this.resizeArray(this.sizeX);
         this.sizeY = this.resizeArray(this.sizeY);
         this.rotation = this.resizeArray(this.rotation);
-
-        this.fields = [
-            this.posX,
-            this.posY,
-            this.sizeX,
-            this.sizeY,
-            this.rotation
-        ];
     }
 
     protected setDefault(index: number): void {

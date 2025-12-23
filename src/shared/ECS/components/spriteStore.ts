@@ -50,13 +50,6 @@ export class spriteStore extends ComponentStore<SpriteType> {
         this.layer = this.resizeArray(this.layer);
         this.flipped = this.resizeArray(this.flipped);
         this.visible = this.resizeArray(this.visible);
-
-        this.fields = [
-            this.spriteId,
-            this.layer,
-            this.flipped,
-            this.visible,
-        ]
     }
 
     protected setDefault(index: number): void {

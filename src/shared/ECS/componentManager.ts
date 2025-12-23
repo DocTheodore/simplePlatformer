@@ -4,6 +4,7 @@ import { ComponentStore } from "./components/_componentStore";
 export class ComponentManager {
     private stores = new Map<number, ComponentStore<unknown>>();
     private entityMasks:number[] = [];
+    dirtyMasks: number[] = [];
 
     registerComponent<T>(componentId: number, store: ComponentStore<T>) {
         this.stores.set(componentId, store);
@@ -11,7 +12,7 @@ export class ComponentManager {
 
     addComponent(componentId: number, entity: number) {
         const store = this.stores.get(componentId);
-        if (!store) throw 'Componente não registrado';
+        if (!store) throw Error('Componente não registrado');
 
         store.add(entity);
 
@@ -32,6 +33,14 @@ export class ComponentManager {
         return (this.entityMasks[entity] & componentId) !== 0;
     }
 
+    markDirty(componentId: number, entity: number) { // Colocar sempre que uma mudança acontecer
+        this.dirtyMasks[entity] = (this.dirtyMasks[entity] ?? 0) | componentId;
+    }
+
+    clearDirty(entity: number) { // Colocar depois de enviar as mudanças para os clientes
+        this.dirtyMasks[entity] = 0;
+    }
+
     queryAll(mask: number): number[] {
         const result: number[] = []
         for (let entity=0; entity < this.entityMasks.length; entity++) {
@@ -44,7 +53,7 @@ export class ComponentManager {
 
     query(mask: number, componentId: number): number[] {
         const store = this.stores.get(componentId);
-        if (!store) throw 'Componente não registrado';
+        if (!store) throw Error('Componente não registrado');
 
         const result: number[] = [];
         for(let index=0; index < store.dense.length; index++) {
