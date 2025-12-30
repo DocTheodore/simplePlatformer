@@ -4,7 +4,7 @@ import { ComponentStore } from "./components/_componentStore";
 export class ComponentManager {
     private stores = new Map<number, ComponentStore<unknown>>();
     private entityMasks:number[] = [];
-    dirtyMasks: number[] = [];
+    private dirtyMasks: number[] = [];
 
     registerComponent<T>(componentId: number, store: ComponentStore<T>) {
         this.stores.set(componentId, store);
@@ -45,6 +45,16 @@ export class ComponentManager {
         const result: number[] = []
         for (let entity=0; entity < this.entityMasks.length; entity++) {
             if((this.entityMasks[entity] & mask) === mask) {
+                result.push(entity);
+            }
+        }
+        return result;
+    }
+
+    queryDirty(mask: number): number[] {
+        const result: number[] = []
+        for (let entity=0; entity < this.dirtyMasks.length; entity++) {
+            if((this.dirtyMasks[entity] & mask) === mask) {
                 result.push(entity);
             }
         }
