@@ -1,4 +1,5 @@
-import { EntityManager } from "../../shared/classes/entity.js";
+import { EntityManager } from "../../shared/ECS/entityManager.js";
+import { ComponentManager } from "../../shared/ECS/componentManager.js";
 import { Player } from "../../shared/types.js";
 import { TileMap } from "../world/tilemapHandler.js";
 
@@ -9,12 +10,15 @@ export let ipKey = '';
 export let myPlayer:Player | undefined = undefined // temporario
 export let localPlayers = new Map<string, Player>();
 
-export const LocalEntities = new EntityManager();
+export const LocalComponents = new ComponentManager();
+export const LocalEntities = new EntityManager(LocalComponents);
+export let PlayerLocalEntity: number | undefined = undefined;
 
 // Eventos do client ================================
 socket.on('hello', (text:string) => {
     console.log(`Server says: ${text}`);
     ipKey = text;
+    PlayerLocalEntity = LocalEntities.create();
 });
 socket.on('chunkData', ({ xChunk, yChunk, tiles }: { xChunk: number, yChunk: number, tiles: Uint16Array }) => {
     TileMap.setChunk(xChunk, yChunk, tiles);
@@ -26,7 +30,6 @@ socket.on('playerData', (serverData:any) => {
     myPlayer = localPlayers.get(ipKey) as Player;
 });
 socket.on('fullEntities', (fullSnapshot: any[]) => {
-    LocalEntities.clear();
     applyDelta(fullSnapshot);
 });
 socket.on('deltaEntities', (delta: any[]) => {
@@ -58,16 +61,5 @@ function applyDelta(delta: any[]) {
             continue;
         }
 
-        if(!LocalEntities.find(id)) {
-            LocalEntities.create(id);
-        }
-
-        for (const [type, component] of Object.entries(components)) {
-            if (component !== undefined) {
-                LocalEntities.add(id, type, component);
-            } else {
-                LocalEntities.remove(id, type);
-            }
-        }
     }
 }

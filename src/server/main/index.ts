@@ -8,8 +8,8 @@ import { WorldManager } from "../world/world.js";
 import { __defaultPlayer, Player } from "../../shared/types.js";
 import { CHUNK_SIZE, INPUT, PLAYER } from "../../shared/constants.js";
 import { checkTileCollision } from "../../shared/functions/collision.js";
-import { EntityManager } from "../../shared/classes/entity.js";
-import { C, InputKey } from "../../shared/types/components.js";
+import { EntityManager } from "../../shared/ECS/entityManager.js";
+import { ComponentManager } from "../../shared/ECS/componentManager.js";
 import { networkMovementSystem } from "../ECS/networkMovementSistem.js";
 
 const app = express();
@@ -19,9 +19,8 @@ const SERVER_PORT = 3000;
 
 // 
 const NetworkWorld = new WorldManager();
-const NetworkEntities = new EntityManager();
-
-let __previousNetworkEntities = NetworkEntities.snapshot();
+const NetworkComponents = new ComponentManager();
+const NetworkEntities = new EntityManager(NetworkComponents);
 
 // Diretórios
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
@@ -48,19 +47,9 @@ io.on('connection', (socket) => {
   const clientIp = socket.handshake.address.split('::ffff:')[1]
   socket.emit("hello", clientIp);
 
-  NetworkEntities.create(clientIp);
-  NetworkEntities.add(clientIp, C.PlayerTag, { });
-  NetworkEntities.add(clientIp, C.Stats, {speed: 5, jump: 10});
-  NetworkEntities.add(clientIp, C.Position, {x: 0, y: 0});
-  NetworkEntities.add(clientIp, C.Velocity, {x: 0, y: 0});
-  NetworkEntities.add(clientIp, C.Facing, {left: false});
-  NetworkEntities.add(clientIp, C.OnGround, {value: false});
-  NetworkEntities.add(clientIp, C.InputKey, { pressed: [], clicked: [] });
-  NetworkEntities.add(clientIp, C.RenderColor, {color: `hsl(${Math.floor(Math.random() * 360)}, 100%, 50%)`});
+  const clientEntityId = NetworkEntities.create();
 
-  networkMovementSystem(NetworkEntities);
-
-  io.emit("fullEntities", NetworkEntities.getDelta(new Map()) );
+  io.emit("fullEntities", NetworkEntities._Show() );
 
   socket.on("teste", () => {
     console.log("Ouvindo cliente", clientIp);
@@ -88,14 +77,6 @@ io.on('connection', (socket) => {
     const { actionId } = data;
     const entityId = clientIp
 
-    if (!NetworkEntities.has(entityId)) return;
-
-    const input = NetworkEntities.get<InputKey>(entityId, C.InputKey);
-    if(input) {
-      if (!input.pressed.includes(actionId)) {
-        input.pressed.push(actionId);
-      }
-    }
 
     /* 
     const thisPlayer = NetworkPlayers.get(clientIp);
@@ -139,17 +120,15 @@ io.on('connection', (socket) => {
   // Lidar com a desconexão ================================
   socket.on("disconnect", () => {
     console.log("Cliente desconectado", clientIp);
-    NetworkEntities.destroy(clientIp);
-    
-    io.emit("deltaEntities", NetworkEntities.getDelta(__previousNetworkEntities) );
-    __previousNetworkEntities = NetworkEntities.snapshot();
+    NetworkEntities.destroy(clientEntityId);
+    console.log(NetworkEntities._Show());
   });
 });
 
-setInterval(() => {
+/* setInterval(() => {
     io.emit("deltaEntities", NetworkEntities.getDelta(__previousNetworkEntities) );
     __previousNetworkEntities = NetworkEntities.snapshot();
-}, 15);
+}, 15); */
 
 setInterval(() => {
     NetworkWorld.autoSaveChunks();

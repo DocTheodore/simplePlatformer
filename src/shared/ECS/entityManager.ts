@@ -21,4 +21,9 @@ export class EntityManager {
         this.recycledIds.push(entity);
         this.componentManager.destroyEntity(entity);
     }
+
+    // Debbug
+    _Show() {
+        return [this.nextId, this.recycledIds];
+    }
 }

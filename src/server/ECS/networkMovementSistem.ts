@@ -1,9 +1,8 @@
-//src/server/ECS/networkMovementSistem.ts
-import { EntityManager } from "../../shared/classes/entity.js";
-import { C } from "../../shared/types/components.js";
+import { EntityManager } from "../../shared/ECS/entityManager.js";
 
+//src/server/ECS/networkMovementSistem.ts
 export function networkMovementSystem(entities: EntityManager): void {
-    const movementEntities = entities.query(C.Position, C.Velocity, C.Facing, C.OnGround, C.Stats);
+    /* const movementEntities = entities.query(C.Position, C.Velocity, C.Facing, C.OnGround, C.Stats);
 
     for(const [id, component] of movementEntities) {
         const pos = component[C.Position];
@@ -20,6 +19,6 @@ export function networkMovementSystem(entities: EntityManager): void {
 
     }
 
-    console.log(JSON.stringify(movementEntities));
+    console.log(JSON.stringify(movementEntities)); */
 
 }
