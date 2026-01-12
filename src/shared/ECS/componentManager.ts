@@ -2,9 +2,9 @@
 import { ComponentStore } from "./components/_componentStore";
 
 export class ComponentManager {
-    private stores = new Map<number, ComponentStore<unknown>>();
-    private entityMasks:number[] = [];
-    private dirtyMasks: number[] = [];
+    stores = new Map<number, ComponentStore<unknown>>();
+    entityMasks:number[] = [];
+    dirtyMasks: number[] = [];
 
     registerComponent<T>(componentId: number, store: ComponentStore<T>) {
         this.stores.set(componentId, store);
@@ -17,6 +17,7 @@ export class ComponentManager {
         store.add(entity);
 
         this.entityMasks[entity] = (this.entityMasks[entity] ?? 0) | componentId;
+        this.markDirty(componentId, entity);
     }
 
     removeComponent(componentId: number, entity: number) {
@@ -24,6 +25,7 @@ export class ComponentManager {
         if (!store) return;
 
         if(store.has(entity)) {
+            this.markDirty(componentId, entity);
             store.remove(entity);
             this.entityMasks[entity] = (this.entityMasks[entity] ?? 0) & ~componentId;
         }
@@ -77,6 +79,26 @@ export class ComponentManager {
 
     getStore<T extends ComponentStore<any>>(componentId: number): T {
         return this.stores.get(componentId) as T;
+    }
+
+    getAllEntities(): number[] {
+        const result: number[] = [];
+        for(let entity=0; entity < this.entityMasks.length; entity++) {
+            if(this.entityMasks[entity] !== 0) {
+                result.push(entity);
+            }
+        }
+        return result;
+    }
+    
+    getDirtyEntities(): number[] {
+        const result: number[] = [];
+        for(let entity=0; entity < this.dirtyMasks.length; entity++) {
+            if(this.dirtyMasks[entity] !== 0) {
+                result.push(entity);
+            }
+        }
+        return []
     }
 
     destroyEntity(entity: number) {

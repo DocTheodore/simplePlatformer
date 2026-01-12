@@ -3,7 +3,7 @@ import { TypedArray } from "../../types.js";
 import { VelocityType } from "../../types/components.js";
 import { ComponentStore } from "./_componentStore.js";
 
-export class velocityStore extends ComponentStore<VelocityType> {
+export class VelocityStore extends ComponentStore<VelocityType> {
     protected capacity: number = 256;
     protected fields: TypedArray[] = [];
 

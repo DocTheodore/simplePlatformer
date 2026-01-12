@@ -3,7 +3,7 @@ import { Renderer } from "../rendering/render.js";
 import { GameTime } from "./gameTime.js";
 import { InputHandler } from "./inputHandler.js";
 import { TileMap } from "../world/tilemapHandler.js";
-import { localPlayers, myPlayer, requestChunks, testeNet } from "../network/socket.js";
+import { localPlayers, requestChunks, testeNet } from "../network/socket.js";
 import { CHUNK_SIZE, PLAYER, TILE_SIZE } from "../../shared/constants.js";
 import { WorldRender } from "../rendering/worldRender.js";
 import { Camera } from "../rendering/camera.js";
@@ -114,10 +114,10 @@ function gameUpdate() {
     GameTime.Update();
     Controller.Update();
 
-    if(myPlayer) {
+    /* if(myPlayer) {
         Player.x = myPlayer.Movement.pos.x;
         Player.y = myPlayer.Movement.pos.y;
-    }
+    } */
 
     const WorldX = Math.floor(Player.x / TILE_SIZE);
     const WorldY = Math.floor(Player.y / TILE_SIZE);

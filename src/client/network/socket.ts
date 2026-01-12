@@ -1,3 +1,4 @@
+//src/client/core/network.socket.ts
 import { EntityManager } from "../../shared/ECS/entityManager.js";
 import { ComponentManager } from "../../shared/ECS/componentManager.js";
 import { Player } from "../../shared/types.js";
@@ -6,8 +7,8 @@ import { TileMap } from "../world/tilemapHandler.js";
 declare const io:any;
 
 export const socket = io(); // Conexão
-export let ipKey = '';
-export let myPlayer:Player | undefined = undefined // temporario
+export let myIp = '';
+export let myEntityId: number | undefined = undefined;
 export let localPlayers = new Map<string, Player>();
 
 export const LocalComponents = new ComponentManager();
@@ -15,9 +16,10 @@ export const LocalEntities = new EntityManager(LocalComponents);
 export let PlayerLocalEntity: number | undefined = undefined;
 
 // Eventos do client ================================
-socket.on('hello', (text:string) => {
-    console.log(`Server says: ${text}`);
-    ipKey = text;
+socket.on('hello', (data: {ip: string, entityId: number}) => {
+    console.log(`Server says: ${data.ip, data.entityId}`);
+    myIp = data.ip;
+    myEntityId = data.entityId;
     PlayerLocalEntity = LocalEntities.create();
 });
 socket.on('chunkData', ({ xChunk, yChunk, tiles }: { xChunk: number, yChunk: number, tiles: Uint16Array }) => {
@@ -27,10 +29,10 @@ socket.on('chunkData', ({ xChunk, yChunk, tiles }: { xChunk: number, yChunk: num
 socket.on('playerData', (serverData:any) => {
     const data = serverData;
     localPlayers = new Map(Object.entries(data));
-    myPlayer = localPlayers.get(ipKey) as Player;
 });
 socket.on('fullEntities', (fullSnapshot: any[]) => {
     applyDelta(fullSnapshot);
+    console.log(fullSnapshot);
 });
 socket.on('deltaEntities', (delta: any[]) => {
     applyDelta(delta);

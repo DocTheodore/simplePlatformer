@@ -6,21 +6,32 @@ import { Server } from "socket.io";
 import { getLocalIpAddress } from "../../shared/utils/ipaddress.js";
 import { WorldManager } from "../world/world.js";
 import { __defaultPlayer, Player } from "../../shared/types.js";
-import { CHUNK_SIZE, INPUT, PLAYER } from "../../shared/constants.js";
-import { checkTileCollision } from "../../shared/functions/collision.js";
 import { EntityManager } from "../../shared/ECS/entityManager.js";
 import { ComponentManager } from "../../shared/ECS/componentManager.js";
 import { networkMovementSystem } from "../ECS/networkMovementSistem.js";
+import { TransformStore } from "../../shared/ECS/components/transformStore.js";
+import { ComponentId, SpriteType, TransformType, VelocityType } from "../../shared/types/components.js";
+import { VelocityStore } from "../../shared/ECS/components/velocityStore.js";
+import { SpriteStore } from "../../shared/ECS/components/spriteStore.js";
 
 const app = express();
 const server = createServer(app);
 const io = new Server(server, { "pingInterval": 2000, "pingTimeout": 10000 });
 const SERVER_PORT = 3000;
 
-// 
+// Gerenciadores de Entidade
 const NetworkWorld = new WorldManager();
 const NetworkComponents = new ComponentManager();
 const NetworkEntities = new EntityManager(NetworkComponents);
+
+// Compnentes
+const _TransformStore = new TransformStore();
+const _VelocityStore = new VelocityStore();
+const _SpriteStore = new SpriteStore();
+
+NetworkComponents.registerComponent<TransformType>(ComponentId.Transform, _TransformStore);
+NetworkComponents.registerComponent<VelocityType>(ComponentId.Velocity, _VelocityStore);
+NetworkComponents.registerComponent<SpriteType>(ComponentId.Sprite, _SpriteStore);
 
 // Diretórios
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
@@ -45,11 +56,17 @@ app.get("/", (req, res) => {
 
 io.on('connection', (socket) => {
   const clientIp = socket.handshake.address.split('::ffff:')[1]
-  socket.emit("hello", clientIp);
-
   const clientEntityId = NetworkEntities.create();
 
-  io.emit("fullEntities", NetworkEntities._Show() );
+  NetworkComponents.addComponent(ComponentId.Transform, clientEntityId);
+  NetworkComponents.addComponent(ComponentId.Velocity, clientEntityId);
+  NetworkComponents.addComponent(ComponentId.Sprite, clientEntityId);
+
+  socket.emit("hello", {ip: clientIp, entityId: clientEntityId});
+
+  io.emit("fullEntities", NetworkEntities.getSnapShot() );
+
+  console.log(NetworkEntities.getSnapShot())
 
   socket.on("teste", () => {
     console.log("Ouvindo cliente", clientIp);
@@ -121,6 +138,7 @@ io.on('connection', (socket) => {
   socket.on("disconnect", () => {
     console.log("Cliente desconectado", clientIp);
     NetworkEntities.destroy(clientEntityId);
+    console.log('Entites Show:');
     console.log(NetworkEntities._Show());
   });
 });

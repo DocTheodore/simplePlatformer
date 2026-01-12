@@ -1,7 +1,7 @@
 //src/client/core/controller
 import { INPUT, PLAYER } from "../../shared/constants.js";
 import { checkTileCollision } from "../../shared/functions/collision.js";
-import { myPlayer, socket } from "../network/socket.js";
+import { socket } from "../network/socket.js";
 import { TileMap } from "../world/tilemapHandler.js";
 import { InputHandler } from "./inputHandler.js";
 
@@ -90,6 +90,6 @@ export class Controller {
         } */
 
         // Suavização visual
-        socket.emit("requestPlayerUpdate", myPlayer);
+        //socket.emit("requestPlayerUpdate", myPlayer);
     }
 }

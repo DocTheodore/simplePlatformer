@@ -3,7 +3,7 @@ import { TypedArray } from "../../types.js";
 import { SpriteType } from "../../types/components.js";
 import { ComponentStore } from "./_componentStore.js";
 
-export class spriteStore extends ComponentStore<SpriteType> {
+export class SpriteStore extends ComponentStore<SpriteType> {
     protected capacity: number = 256;
     protected fields: TypedArray[] = [];
 
