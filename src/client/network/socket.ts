@@ -1,7 +1,6 @@
 //src/client/core/network.socket.ts
 import { EntityManager } from "../../shared/ECS/entityManager.js";
 import { ComponentManager } from "../../shared/ECS/componentManager.js";
-import { Player } from "../../shared/types.js";
 import { TileMap } from "../world/tilemapHandler.js";
 
 declare const io:any;
@@ -9,7 +8,7 @@ declare const io:any;
 export const socket = io(); // Conexão
 export let myIp = '';
 export let myEntityId: number | undefined = undefined;
-export let localPlayers = new Map<string, Player>();
+export let localPlayers = new Map<string, any>();
 
 export const LocalComponents = new ComponentManager();
 export const LocalEntities = new EntityManager(LocalComponents);
@@ -35,7 +34,8 @@ socket.on('fullEntities', (fullSnapshot: any[]) => {
     console.log(fullSnapshot);
 });
 socket.on('deltaEntities', (delta: any[]) => {
-    applyDelta(delta);
+    console.log(delta);
+    //applyDelta(delta);
 });
 
 // Metodos do client ================================
@@ -45,9 +45,12 @@ export const testeNet = () => {
 export const requestChunks = (xChunk:number, yChunk:number, radius:number = 0) => {
     socket.emit("requestChunks", { xChunk, yChunk, radius });
 }
-export const playerUpdate = (playerData: Player) => {
+export const playerUpdate = (playerData: any) => {
     //console.log('a');
     socket.emit("requestPlayerUpdate", playerData);
+}
+export const sendInput = (input: number) => {
+    socket.emit("input", {input});
 }
 
 // Funções locais ===================================

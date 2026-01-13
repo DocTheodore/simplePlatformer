@@ -32,7 +32,8 @@ export class EntityManager {
         const snap: any[] = [];
         const entities = this.componentManager.getAllEntities();
 
-        for(const entity of entities) {
+        for(let i=0; i < entities.length; i++) {
+            const entity = entities[i];
             const obj: any = {id: entity};
             const mask = this.componentManager.entityMasks[entity];
 
@@ -50,14 +51,15 @@ export class EntityManager {
         const delta: any[] = [];
 
         // Entidades removidas
-        for(const id of this.removedIds) {
-            delta.push({id, removed: true});
+        for(let i=0; i < this.removedIds.length; i++) {
+            delta.push({id: this.removedIds[i], removed: true});
         }
         this.removedIds.length = 0;
 
         // Mudanças registradas
         const dirtyEntities = this.componentManager.getDirtyEntities();
-        for (const entity of dirtyEntities) {
+        for (let i=0; i < dirtyEntities.length; i++) {
+            const entity = dirtyEntities[i];
             const obj: any = {id: entity};
             const dirty = this.componentManager.dirtyMasks[entity];
             const mask = this.componentManager.entityMasks[entity];

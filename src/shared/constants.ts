@@ -1,6 +1,10 @@
 
+// Chunk config
 export const CHUNK_SIZE = 64;
 export const TILE_SIZE = 16;
+export const MIN_CHUNK_RADIUS = 3;
+
+// World config
 export const GRAVITY = 0.5;
 
 export enum INPUT {

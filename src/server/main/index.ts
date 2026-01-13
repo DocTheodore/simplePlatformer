@@ -5,33 +5,50 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import { getLocalIpAddress } from "../../shared/utils/ipaddress.js";
 import { WorldManager } from "../world/world.js";
-import { __defaultPlayer, Player } from "../../shared/types.js";
+import { ClientState } from "../../shared/types.js";
 import { EntityManager } from "../../shared/ECS/entityManager.js";
 import { ComponentManager } from "../../shared/ECS/componentManager.js";
-import { networkMovementSystem } from "../ECS/networkMovementSistem.js";
+import { networkMovementSystem } from "../ECS/networkMovementSystem.js";
 import { TransformStore } from "../../shared/ECS/components/transformStore.js";
-import { ComponentId, SpriteType, TransformType, VelocityType } from "../../shared/types/components.js";
+import { ChunkType, ComponentId, InputType, NetworkType, SpriteType, TransformType, VelocityType } from "../../shared/types/components.js";
 import { VelocityStore } from "../../shared/ECS/components/velocityStore.js";
 import { SpriteStore } from "../../shared/ECS/components/spriteStore.js";
+import { networkChunkLocationSystem } from "../ECS/networkChunkLocationSystem.js";
+import { ChunkStore } from "../../shared/ECS/components/chunkStore.js";
+import { NetworkStore } from "../../shared/ECS/components/networkStore.js";
+import { InputStore } from "../../shared/ECS/components/inputStore.js";
+import { networkAoiSystem } from "../ECS/networkAoiSystem.js";
+import { MIN_CHUNK_RADIUS } from "../../shared/constants.js";
 
 const app = express();
 const server = createServer(app);
 const io = new Server(server, { "pingInterval": 2000, "pingTimeout": 10000 });
 const SERVER_PORT = 3000;
 
-// Gerenciadores de Entidade
+// Gerenciador de clientes
+const Clients = new Map<string, ClientState>();
+
+// Gerenciador do estado do Mundo
 const NetworkWorld = new WorldManager();
 const NetworkComponents = new ComponentManager();
 const NetworkEntities = new EntityManager(NetworkComponents);
+const GlobalEntities = new Set<number>();
+const LocalChunkEntities = new Map<string, Set<number>>();
 
 // Compnentes
 const _TransformStore = new TransformStore();
 const _VelocityStore = new VelocityStore();
 const _SpriteStore = new SpriteStore();
+const _ChunkStore = new ChunkStore();
+const _NetworkStore = new NetworkStore();
+const _InputStore = new InputStore();
 
 NetworkComponents.registerComponent<TransformType>(ComponentId.Transform, _TransformStore);
 NetworkComponents.registerComponent<VelocityType>(ComponentId.Velocity, _VelocityStore);
 NetworkComponents.registerComponent<SpriteType>(ComponentId.Sprite, _SpriteStore);
+NetworkComponents.registerComponent<ChunkType>(ComponentId.Chunk, _ChunkStore);
+NetworkComponents.registerComponent<NetworkType>(ComponentId.Network, _NetworkStore);
+NetworkComponents.registerComponent<InputType>(ComponentId.Input, _InputStore);
 
 // Diretórios
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
@@ -58,6 +75,16 @@ io.on('connection', (socket) => {
   const clientIp = socket.handshake.address.split('::ffff:')[1]
   const clientEntityId = NetworkEntities.create();
 
+  Clients.set(socket.id, {
+    socket: socket,
+    entity: clientEntityId,
+    chunkX: 0,
+    chunkY: 0,
+    radius: MIN_CHUNK_RADIUS,
+    visible: new Set<number>(),
+  });
+  GlobalEntities.add(clientEntityId);
+
   NetworkComponents.addComponent(ComponentId.Transform, clientEntityId);
   NetworkComponents.addComponent(ComponentId.Velocity, clientEntityId);
   NetworkComponents.addComponent(ComponentId.Sprite, clientEntityId);
@@ -72,6 +99,7 @@ io.on('connection', (socket) => {
     console.log("Ouvindo cliente", clientIp);
   })
 
+  // Envia os dados de chunk para o jogador
   socket.on("requestChunks", (data:{xChunk:number, yChunk:number, radius:number}) => {
     const{xChunk, yChunk, radius} = data;
     for (let dx = -radius; dx <= radius; dx++) {
@@ -85,69 +113,58 @@ io.on('connection', (socket) => {
 
   });
 
-  /* socket.on("requestPlayerUpdate", (data:Player) => {
-    NetworkPlayers.set(clientIp, data);
-    socket.emit("playerData", Object.fromEntries(NetworkPlayers.entries()) );
-  }); */
+  // Atualiza o input do jogador
+  socket.on("input", (data: {input: number}) => {
+    const storeInput = NetworkComponents.getStore<InputStore>(ComponentId.Input);
+    const IndexInp = storeInput.indexOf(clientEntityId);
 
-  socket.on("playerAction", (data) => {
-    const { actionId } = data;
-    const entityId = clientIp
+    const pressed = storeInput.pressed[IndexInp];
+    const inputData = data.input;
 
+    storeInput.clicked[IndexInp] = inputData & ~pressed;
+    storeInput.pressed[IndexInp] = inputData;
 
-    /* 
-    const thisPlayer = NetworkPlayers.get(clientIp);
-    networkMovementSystem(NetworkEntities);
-    if(!thisPlayer) return 
-    
-    const Speed = 10;
+    /*/ Verifiar isso aqui melhor
+     *
+     *    pressed: 0001
+        inputData; 1001
+         ~pressed: 1110
+                &: 1000
+          clicked: 1000
+     */
 
-    let newPos = thisPlayer.Movement.pos;
-
-    if(actionId === INPUT.UP) { newPos.y -= Speed }
-    if(actionId === INPUT.DOWN) { newPos.y += Speed }
-    if(actionId === INPUT.LEFT) { newPos.x -= Speed }
-    if(actionId === INPUT.RIGHT) { newPos.x += Speed }
-
-    const getTile = (worldX: number, worldY: number): number | null => {
-        const xChunk = Math.floor(worldX / CHUNK_SIZE);
-        const yChunk = Math.floor(worldY / CHUNK_SIZE);
-        const chunk = NetworkWorld.getChunk(xChunk, yChunk);
-        if (!chunk) { return null }
-
-        // Garante que % funcione com números negativos
-        const localX = ((worldX % CHUNK_SIZE) + CHUNK_SIZE) % CHUNK_SIZE;
-        const localY = ((worldY % CHUNK_SIZE) + CHUNK_SIZE) % CHUNK_SIZE;
-
-        const index = localY * CHUNK_SIZE + localX;
-        return chunk[index];
-    }
-
-    // Checar no X
-    let collision = checkTileCollision(newPos.x, thisPlayer.Movement.pos.y, PLAYER.WIDTH, PLAYER.HEIGHT, getTile);
-    if (!collision) thisPlayer.Movement.pos.x = newPos.x;
-
-    // Checar no Y
-    collision = checkTileCollision(thisPlayer.Movement.pos.x, newPos.y, PLAYER.WIDTH, PLAYER.HEIGHT, getTile);
-    if (!collision) thisPlayer.Movement.pos.y = newPos.y;
-
-    NetworkPlayers.set(clientIp, thisPlayer); */
+    NetworkComponents.markDirty(ComponentId.Input, clientEntityId);
   });
 
   // Lidar com a desconexão ================================
   socket.on("disconnect", () => {
     console.log("Cliente desconectado", clientIp);
+
     NetworkEntities.destroy(clientEntityId);
+    GlobalEntities.delete(clientEntityId);
+
     console.log('Entites Show:');
     console.log(NetworkEntities._Show());
   });
 });
 
-/* setInterval(() => {
-    io.emit("deltaEntities", NetworkEntities.getDelta(__previousNetworkEntities) );
-    __previousNetworkEntities = NetworkEntities.snapshot();
-}, 15); */
+// Update loop (Lógica do servidor)
+setInterval(() => {
+  networkMovementSystem(NetworkComponents);
+  networkChunkLocationSystem(NetworkComponents, NetworkWorld, LocalChunkEntities);
+  networkAoiSystem(NetworkComponents, Clients, LocalChunkEntities, GlobalEntities);
+}, 15);
 
+// Delta loop (Envio de dados para os clients)
+setInterval(() => {
+  const delta = NetworkEntities.getDelta();
+
+  if (delta.length > 0) {
+    io.emit("deltaEntities", delta );
+  } 
+}, 30);
+
+// Chunk saving loop
 setInterval(() => {
     NetworkWorld.autoSaveChunks();
 }, 10_000);

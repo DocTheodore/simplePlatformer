@@ -98,7 +98,7 @@ export class ComponentManager {
                 result.push(entity);
             }
         }
-        return []
+        return result;
     }
 
     destroyEntity(entity: number) {
