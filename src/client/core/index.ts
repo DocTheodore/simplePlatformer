@@ -90,6 +90,7 @@ function gameStart() {
     
     // Setup de eventos
     InputHandler.init();
+    Controller.init();
     WorldRender.init(Renderer.ctx);
     EntityRender.init(Renderer.ctx);
 	

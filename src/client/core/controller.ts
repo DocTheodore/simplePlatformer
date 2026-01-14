@@ -1,82 +1,79 @@
 //src/client/core/controller
-import { INPUT, PLAYER } from "../../shared/constants.js";
-import { checkTileCollision } from "../../shared/functions/collision.js";
 import { InputMap } from "../../shared/types/components.js";
-import { sendInput, socket } from "../network/socket.js";
-import { TileMap } from "../world/tilemapHandler.js";
+import { sendInput } from "../network/socket.js";
 import { InputHandler } from "./inputHandler.js";
 
-interface InputConfigType {
-    UP: string,
-    DOWN: string,
-    LEFT: string,
-    RIGHT: string,
-    JUMP: string,
-    MOUSE_A: number | number[],
-    MOUSE_B: number | number[],
-}
-
-const defaultInputConfig:InputConfigType = {
-    UP: 'w',
-    DOWN: 's',
-    LEFT: 'a',
-    RIGHT: 'd',
-    JUMP: ' ',
-    MOUSE_A: 0,
-    MOUSE_B: 1,
-}
+type keybind = Record<keyof InputMap, string[]>;
 
 export class Controller {
-    static InputConfig:InputConfigType = defaultInputConfig;
-    static InputMask:number = 0;
+    static keymap = new Map<string, InputMap>();
+    private static lastPressed: number = 0;
+    private static lastClicked: number = 0;
+    private static ready: boolean = false;
 
-    private constructor () {}
+    constructor () {}
 
+    // Carrega as informações das teclas no keymap
+    static setKeymap(data: keybind) {
+        this.keymap.clear();
+
+        for (const action in data) {
+            const bit: number = <InputMap>InputMap[action as keyof typeof InputMap];
+
+            for (const key of data[action as keyof typeof data]) {
+                Controller.keymap.set(key, bit);
+            }
+        }
+    }
+
+    // Carrega as informações do config.json
+    static async init() {
+        let keydata: any = undefined;
+
+        try {
+            fetch('/config.json').then(resp => {
+                resp.json().then(data => {
+                    keydata = data.keymap;
+                }).catch(err => {
+                    console.error(`Json error: ${err}`);
+                }).finally(() => {
+                    Controller.setKeymap(keydata);
+                    Controller.ready = true;
+                    //console.log('keydata', Controller.keymap);
+                })
+                
+            }).catch(err => {
+                console.error(`HTTP error: ${err}`);
+            })
+
+        } catch(err) {
+            console.error('Erro ao carregar conteúdo interno', err);
+        }
+        
+    }
+
+    // Pega uma lista de teclas e retorna um bitmask
+    static getInputMask(keys: string[]): number {
+        let mask = 0;
+        for(const key of keys) {
+            mask |= Controller.keymap.get(key) ?? 0;
+        }
+        return mask;
+    }
+
+    // Função Update
     static Update() {
-        //if (!myPlayer) return;
+        if(!Controller.ready) return
 
-        Controller.InputMask = 0;
-        let moved = false;
-        //const newPos = { x: 0, y: 0 };
+        const pressed = Controller.getInputMask(InputHandler.keyPressed);
+        const clicked = Controller.getInputMask(InputHandler.keyClicked);
 
-        if (InputHandler.keyPressed.includes(Controller.InputConfig.UP)) {
-            Controller.InputMask |= InputMap.Up;
-            moved = true;
+        if (pressed !== Controller.lastPressed ||
+            clicked !== Controller.lastClicked
+        ) {
+            sendInput(pressed, clicked);
+            Controller.lastPressed = pressed;
+            Controller.lastClicked = clicked;
         }
-        if (InputHandler.keyPressed.includes(Controller.InputConfig.DOWN)) {
-            Controller.InputMask |= InputMap.Down;
-            moved = true;
-        }
-        if (InputHandler.keyPressed.includes(Controller.InputConfig.LEFT)) {
-            Controller.InputMask |= InputMap.Left;
-            moved = true;
-        }
-        if (InputHandler.keyPressed.includes(Controller.InputConfig.RIGHT)) {
-            Controller.InputMask |= InputMap.Right;
-            moved = true;
-        }
-
-        if (!moved) return;
-        if (Controller.InputMask > 0) sendInput(Controller.InputMask);
-
-        /*
-        // Client-side collision (previsão)
-        const getTile = (worldX: number, worldY: number): number | null => {
-            const tile = TileMap.getTile(worldX, worldY);
-            return tile ?? null;
-        };
-
-        // Testa X primeiro
-        if (!checkTileCollision(newPos.x, myPlayer.Movement.pos.y, w, h, getTile)) {
-            myPlayer.Movement.pos.x = newPos.x;
-        }
-        // Testa Y
-        if (!checkTileCollision(myPlayer.Movement.pos.x, newPos.y, w, h, getTile)) {
-            myPlayer.Movement.pos.y = newPos.y;
-        } 
-        */
-
-        // Suavização visual
-        //socket.emit("requestPlayerUpdate", myPlayer);
     }
 }

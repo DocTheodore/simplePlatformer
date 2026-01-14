@@ -1,7 +1,7 @@
+
+
 export class InputHandler {
     static mousePos = {x: 0, y:0};
-    static mousePressed:number[] = [];
-    static mouseClicked:number[] = [];
     static tileSize = 16;
 
     static keyPressed:string[] = [];
@@ -24,36 +24,43 @@ export class InputHandler {
             //console.log(InputHandler.tilePos, InputHandler.tileX, InputHandler.tileY);
         });
         document.addEventListener('mousedown', (ev) => {
-            if(!InputHandler.mousePressed.some(button => button === ev.button)) {
-                InputHandler.mousePressed.push(ev.button);
-                InputHandler.mouseClicked.push(ev.button);
+            const key = `mouse${ev.button}`;
+
+            if(!InputHandler.keyPressed.includes(key)) {
+                InputHandler.keyPressed.push(key);
+                InputHandler.keyClicked.push(key);
             }
         });
         document.addEventListener('mouseup', (ev) => {
-            if(InputHandler.mousePressed.some(button => button === ev.button)) {
-                const index = InputHandler.mousePressed.indexOf(ev.button);
-                InputHandler.mousePressed.splice(index, 1);
+            const key = `mouse${ev.button}`;
+
+            if(InputHandler.keyPressed.includes(key)) {
+                const index = InputHandler.keyPressed.indexOf(key);
+                InputHandler.keyPressed.splice(index, 1);
             }
         });
 
         // Eventos das Teclas
         document.addEventListener('keydown', (ev) => {
-            if(!InputHandler.keyPressed.some(key => key === ev.key)) {
-                InputHandler.keyPressed.push(ev.key);
-                InputHandler.keyClicked.push(ev.key);
+            const key = ev.key.toLowerCase();
+
+            if(!InputHandler.keyPressed.includes(key)) {
+                InputHandler.keyPressed.push(key);
+                InputHandler.keyClicked.push(key);
             }
         });
         document.addEventListener('keyup', (ev) => {
-            if(InputHandler.keyPressed.some(key => key === ev.key)) {
-                const index = InputHandler.keyPressed.indexOf(ev.key);
+            const key = ev.key.toLowerCase();
+
+            if(InputHandler.keyPressed.includes(key)) {
+                const index = InputHandler.keyPressed.indexOf(key);
                 InputHandler.keyPressed.splice(index, 1);
             }
         });
     }
 
     static lateUpdate() {
-        InputHandler.mouseClicked = [];
-        InputHandler.keyClicked = [];
+        InputHandler.keyClicked.length = 0;
     }
 
     // Metodos Get

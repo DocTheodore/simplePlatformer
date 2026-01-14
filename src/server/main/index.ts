@@ -88,6 +88,10 @@ io.on('connection', (socket) => {
   NetworkComponents.addComponent(ComponentId.Transform, clientEntityId);
   NetworkComponents.addComponent(ComponentId.Velocity, clientEntityId);
   NetworkComponents.addComponent(ComponentId.Sprite, clientEntityId);
+  NetworkComponents.addComponent(ComponentId.Chunk, clientEntityId);
+  NetworkComponents.addComponent(ComponentId.Network, clientEntityId);
+  NetworkComponents.addComponent(ComponentId.Input, clientEntityId);
+
 
   socket.emit("hello", {ip: clientIp, entityId: clientEntityId});
 
@@ -114,24 +118,13 @@ io.on('connection', (socket) => {
   });
 
   // Atualiza o input do jogador
-  socket.on("input", (data: {input: number}) => {
+  socket.on("input", (data: InputType) => {
     const storeInput = NetworkComponents.getStore<InputStore>(ComponentId.Input);
     const IndexInp = storeInput.indexOf(clientEntityId);
+    const {pressed, clicked} = data;
 
-    const pressed = storeInput.pressed[IndexInp];
-    const inputData = data.input;
-
-    storeInput.clicked[IndexInp] = inputData & ~pressed;
-    storeInput.pressed[IndexInp] = inputData;
-
-    /*/ Verifiar isso aqui melhor
-     *
-     *    pressed: 0001
-        inputData; 1001
-         ~pressed: 1110
-                &: 1000
-          clicked: 1000
-     */
+    storeInput.clicked[IndexInp] = clicked;
+    storeInput.pressed[IndexInp] = pressed;
 
     NetworkComponents.markDirty(ComponentId.Input, clientEntityId);
   });
@@ -142,6 +135,7 @@ io.on('connection', (socket) => {
 
     NetworkEntities.destroy(clientEntityId);
     GlobalEntities.delete(clientEntityId);
+    Clients.delete(socket.id);
 
     console.log('Entites Show:');
     console.log(NetworkEntities._Show());

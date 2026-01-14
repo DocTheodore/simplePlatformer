@@ -1,0 +1,12 @@
+{
+    "keymap": {
+        "Up": ["w"],
+        "Down": ["s"],
+        "Left": ["a"],
+        "Right": ["d"],
+        "Jump": [" "],
+        "Action1": ["mouse0"],
+        "Action2": ["mouse2"],
+        "Action3": ["mouse1"]
+    }
+}

@@ -49,8 +49,8 @@ export const playerUpdate = (playerData: any) => {
     //console.log('a');
     socket.emit("requestPlayerUpdate", playerData);
 }
-export const sendInput = (input: number) => {
-    socket.emit("input", {input});
+export const sendInput = (pressed: number, clicked: number) => {
+    socket.emit("input", {pressed, clicked});
 }
 
 // Funções locais ===================================

@@ -17,9 +17,14 @@ export function networkMovementSystem(manager: ComponentManager): void {
         const indexT = storeTransform.indexOf(entity);
         const indexV = storeVelocity.indexOf(entity);
 
-        storeTransform.posX[indexT] += storeVelocity.velX[indexV];
-        storeTransform.posY[indexT] += storeVelocity.velY[indexV];
-        manager.markDirty(ComponentId.Transform, entity);
+        const velX = storeVelocity.velX[indexV];
+        const velY = storeVelocity.velY[indexV];
+
+        if (velX !== 0 || velY !== 0) {
+            storeTransform.posX[indexT] += velX;
+            storeTransform.posY[indexT] += velY;
+            manager.markDirty(ComponentId.Transform, entity);
+        }
     }
 
 }

@@ -36,22 +36,27 @@ export interface InputType { // [5]
     clicked: InputMap;
 }
 
-export const enum ComponentId { // Max = 32
+export interface ActionType { // [6]
+    current: ActionMap;
+}
+
+export enum ComponentId { // Max = 32
     Transform = 1 << 0,
     Velocity  = 1 << 1,
     Sprite    = 1 << 2,
     Chunk     = 1 << 3,
     Network   = 1 << 4,
     Input     = 1 << 5,
+    Action     = 1 << 6,
 }
 
-export const enum NetScope {
+export enum NetScope {
     Owner,   // Jogadores
     Local,   // Entidades que só aparecem perto
     Global,  // Entidades que estão sempre no mapa
 }
 
-export const enum InputMap {
+export enum InputMap {
     Up      = 1 <<  0,
     Down    = 1 <<  1,
     Left    = 1 <<  2,
@@ -60,4 +65,10 @@ export const enum InputMap {
     Action1 = 1 <<  5,
     Action2 = 1 <<  6,
     Action3 = 1 <<  7,
+}
+
+export enum ActionMap {
+    Idle,
+    Walking,
+    Jumping,
 }
