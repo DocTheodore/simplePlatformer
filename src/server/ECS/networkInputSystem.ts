@@ -14,12 +14,42 @@ export function networkInputSystem(manager: ComponentManager) {
     for(let i = 0; i < entities.length; i++) {
         const entity = entities[i];
 
+        // Index da entidade
         const indexInp = storeInput.indexOf(entity);
         const indexDir = storeDirection.indexOf(entity);
 
+        // Quais teclas estão sendo apertadas
         const pressed = storeInput.pressed[indexInp];
 
-        if(pressed & InputMap.Right) storeDirection.dirX[indexDir] = 1
-        if(pressed & InputMap.Left) storeDirection.dirX[indexDir] = -1
+        // Regras de movimento
+        const pressRight = pressed & InputMap.Right
+        const pressLeft = pressed & InputMap.Left
+        const pressUp = pressed & InputMap.Up // Só para debbug
+        const pressDown = pressed & InputMap.Down // Só para debbug
+
+        // Direção atual
+        const currentDirX = storeDirection.dirX[indexDir];
+        const currentDirY = storeDirection.dirY[indexDir]; // Só para debbug
+
+
+        if (pressRight ^ pressLeft) {
+            if(pressRight) storeDirection.dirX[indexDir] = 1
+            if(pressLeft) storeDirection.dirX[indexDir] = -1
+        } else {
+            storeDirection.dirX[indexDir] = 0
+        }
+
+        //Só para debbug
+        if (pressDown ^ pressUp) {
+            if(pressDown) storeDirection.dirY[indexDir] = 1
+            if(pressUp) storeDirection.dirY[indexDir] = -1
+        } else {
+            storeDirection.dirY[indexDir] = 0
+        }
+
+        if(currentDirX !== storeDirection.dirX[indexDir] ||
+            currentDirY !== storeDirection.dirY[indexDir] // Só para debbug
+        ) manager.markDirty(ComponentId.Direction, entity);
+         
     }
 }
