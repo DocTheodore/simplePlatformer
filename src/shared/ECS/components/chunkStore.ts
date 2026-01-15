@@ -8,13 +8,13 @@ export class ChunkStore extends ComponentStore<ChunkType> {
     protected fields: TypedArray[] = [];
 
     // Proprieades
-    chunkX: Uint32Array;
-    chunkY: Uint32Array;
+    chunkX: Int16Array;
+    chunkY: Int16Array;
 
     constructor() {
         super();
-        this.chunkX = new Uint32Array(this.capacity);
-        this.chunkY = new Uint32Array(this.capacity);
+        this.chunkX = new Int16Array(this.capacity);
+        this.chunkY = new Int16Array(this.capacity);
 
         this.fields = [
             this.chunkX,

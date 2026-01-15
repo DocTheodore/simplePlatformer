@@ -1,5 +1,16 @@
 // shared/types/components
 
+/**
+ * Pipeline de sistemas:
+ * 
+ * 1 - Decisão (Input/IA)
+ * 2 - Controle (Interpretação)
+ * 3 - Regras
+ * 4 - Física
+ * 5 - Resultado
+ * 
+ */
+
 export interface TransformType { // [0]
     posX: number;
     posY: number;
@@ -36,8 +47,9 @@ export interface InputType { // [5]
     clicked: InputMap;
 }
 
-export interface ActionType { // [6]
-    current: ActionMap;
+export interface DirectionType { // [6]
+    dirX: number;
+    dirY: number;
 }
 
 export enum ComponentId { // Max = 32
@@ -47,7 +59,7 @@ export enum ComponentId { // Max = 32
     Chunk     = 1 << 3,
     Network   = 1 << 4,
     Input     = 1 << 5,
-    Action     = 1 << 6,
+    Direction = 1 << 6,
 }
 
 export enum NetScope {
@@ -65,10 +77,4 @@ export enum InputMap {
     Action1 = 1 <<  5,
     Action2 = 1 <<  6,
     Action3 = 1 <<  7,
-}
-
-export enum ActionMap {
-    Idle,
-    Walking,
-    Jumping,
 }

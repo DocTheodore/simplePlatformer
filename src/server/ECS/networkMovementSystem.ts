@@ -1,4 +1,4 @@
-//src/server/ECS/networkMovementSistem.ts
+//src/server/ECS/networkMovementSystem.ts
 import { ComponentManager } from "../../shared/ECS/componentManager.js";
 import { TransformStore } from "../../shared/ECS/components/transformStore.js";
 import { VelocityStore } from "../../shared/ECS/components/velocityStore.js";
