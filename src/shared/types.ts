@@ -11,6 +11,7 @@ export type TypedArray =
   | Uint8ClampedArray
   | Int16Array
   | Uint16Array
+  | Float16Array
   | Int32Array
   | Uint32Array
   | Float32Array

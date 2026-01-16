@@ -93,7 +93,7 @@ io.on('connection', (socket) => {
   NetworkComponents.addComponent(ComponentId.Input, clientEntityId);
 
 
-  socket.emit("hello", {ip: clientIp, entityId: clientEntityId});
+  socket.emit("playerStart", {ip: clientIp, entityId: clientEntityId});
 
   io.emit("fullEntities", NetworkEntities.getSnapShot() );
 

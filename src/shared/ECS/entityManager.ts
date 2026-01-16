@@ -11,11 +11,18 @@ export class EntityManager {
         this.componentManager = comp;
     }
 
-    create():number {
+    create():number { // Criar uma entidade nova no servidor
         if(this.recycledIds.length > 0) {
             return this.recycledIds.pop()!;
         }
         return this.nextId++;
+    }
+
+    ensure(entity: number): void { // Receber um entidade no client
+        if(this.componentManager.entityMasks[entity] === undefined) {
+            this.componentManager.entityMasks[entity] = 0;
+            this.componentManager.dirtyMasks[entity] = 0;
+        }
     }
 
     destroy(entity: number) {
@@ -52,7 +59,7 @@ export class EntityManager {
 
         // Entidades removidas
         for(let i=0; i < this.removedIds.length; i++) {
-            delta.push({id: this.removedIds[i], removed: true});
+            delta.push({id: this.removedIds[i], $removed: true});
         }
         this.removedIds.length = 0;
 

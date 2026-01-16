@@ -2,6 +2,12 @@
 import { EntityManager } from "../../shared/ECS/entityManager.js";
 import { ComponentManager } from "../../shared/ECS/componentManager.js";
 import { TileMap } from "../world/tilemapHandler.js";
+import { ComponentId } from "../../shared/types/components.js";
+import { TransformStore } from "../../shared/ECS/components/transformStore.js";
+import { VelocityStore } from "../../shared/ECS/components/velocityStore.js";
+import { DirectionStore } from "../../shared/ECS/components/directionStore.js";
+import { InputStore } from "../../shared/ECS/components/inputStore.js";
+import { SpeedStore } from "../../shared/ECS/components/speedStore.js";
 
 declare const io:any;
 
@@ -14,12 +20,33 @@ export const LocalComponents = new ComponentManager();
 export const LocalEntities = new EntityManager(LocalComponents);
 export let PlayerLocalEntity: number | undefined = undefined;
 
+// Componentes
+const _TransformStore = new TransformStore();
+const _VelocityStore = new VelocityStore();
+const _DirectionStore = new DirectionStore();
+const _InputStore = new InputStore();
+const _SpeedStore = new SpeedStore();
+
+LocalComponents.registerComponent(ComponentId.Transform, _TransformStore);
+LocalComponents.registerComponent(ComponentId.Velocity, _VelocityStore);
+LocalComponents.registerComponent(ComponentId.Direction, _DirectionStore);
+LocalComponents.registerComponent(ComponentId.Input, _InputStore);
+LocalComponents.registerComponent(ComponentId.Speed, _SpeedStore);
+
 // Eventos do client ================================
-socket.on('hello', (data: {ip: string, entityId: number}) => {
+socket.on('playerStart', (data: {ip: string, entityId: number}) => {
     console.log(`Server says: ${data.ip, data.entityId}`);
+
     myIp = data.ip;
-    myEntityId = data.entityId;
-    PlayerLocalEntity = LocalEntities.create();
+    PlayerLocalEntity = data.entityId;;
+    LocalEntities.ensure(data.entityId);
+
+    LocalComponents.addComponent(ComponentId.Transform, PlayerLocalEntity);
+    LocalComponents.addComponent(ComponentId.Velocity, PlayerLocalEntity);
+    LocalComponents.addComponent(ComponentId.Direction, PlayerLocalEntity);
+    LocalComponents.addComponent(ComponentId.Input, PlayerLocalEntity);
+    LocalComponents.addComponent(ComponentId.Speed, PlayerLocalEntity);
+
 });
 socket.on('chunkData', ({ xChunk, yChunk, tiles }: { xChunk: number, yChunk: number, tiles: Uint16Array }) => {
     TileMap.setChunk(xChunk, yChunk, tiles);
@@ -66,5 +93,23 @@ function applyDelta(delta: any[]) {
             continue;
         }
 
+        LocalEntities.ensure(id);
+
+        for(const compIdStr in components) {
+            const compId = Number(compIdStr);
+            const data = components[compId];
+
+            if (data === null) {
+                LocalComponents.removeComponent(compId, id);
+            } else {
+                if(!LocalComponents.hasComponent(compId, id)) {
+                    LocalComponents.addComponent(compId, id);
+                }
+
+                const store = LocalComponents.getStore<any>(compId);
+                const index = store.indexOf(id);
+                store.set(index, data);
+            }
+        }
     }
 }

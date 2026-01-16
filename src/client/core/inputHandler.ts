@@ -1,4 +1,4 @@
-
+// src/client/core/inputHandler
 
 export class InputHandler {
     static mousePos = {x: 0, y:0};

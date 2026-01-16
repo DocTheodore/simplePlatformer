@@ -52,6 +52,12 @@ export interface DirectionType { // [6]
     dirY: number;
 }
 
+export interface SpeedType { // [7]
+    acceleration: number;
+    topSpeed: number;
+    friction: number;
+}
+
 export enum ComponentId { // Max = 32
     Transform = 1 << 0,
     Velocity  = 1 << 1,
@@ -60,6 +66,7 @@ export enum ComponentId { // Max = 32
     Network   = 1 << 4,
     Input     = 1 << 5,
     Direction = 1 << 6,
+    Speed     = 1 << 7,
 }
 
 export enum NetScope {
