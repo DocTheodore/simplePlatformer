@@ -2,12 +2,15 @@
 import { EntityManager } from "../../shared/ECS/entityManager.js";
 import { ComponentManager } from "../../shared/ECS/componentManager.js";
 import { TileMap } from "../world/tilemapHandler.js";
-import { ComponentId } from "../../shared/types/components.js";
+import { ChunkType, ComponentId, DirectionType, InputType, NetworkType, SpeedType, SpriteType, TransformType, VelocityType } from "../../shared/types/components.js";
 import { TransformStore } from "../../shared/ECS/components/transformStore.js";
 import { VelocityStore } from "../../shared/ECS/components/velocityStore.js";
 import { DirectionStore } from "../../shared/ECS/components/directionStore.js";
 import { InputStore } from "../../shared/ECS/components/inputStore.js";
 import { SpeedStore } from "../../shared/ECS/components/speedStore.js";
+import { SpriteStore } from "../../shared/ECS/components/spriteStore.js";
+import { ChunkStore } from "../../shared/ECS/components/chunkStore.js";
+import { NetworkStore } from "../../shared/ECS/components/networkStore.js";
 
 declare const io:any;
 
@@ -23,15 +26,21 @@ export let PlayerLocalEntity: number | undefined = undefined;
 // Componentes
 const _TransformStore = new TransformStore();
 const _VelocityStore = new VelocityStore();
+const _SpriteStore = new SpriteStore();
+const _ChunkStore = new ChunkStore();
+const _NetworkStore = new NetworkStore();
 const _DirectionStore = new DirectionStore();
 const _InputStore = new InputStore();
 const _SpeedStore = new SpeedStore();
 
-LocalComponents.registerComponent(ComponentId.Transform, _TransformStore);
-LocalComponents.registerComponent(ComponentId.Velocity, _VelocityStore);
-LocalComponents.registerComponent(ComponentId.Direction, _DirectionStore);
-LocalComponents.registerComponent(ComponentId.Input, _InputStore);
-LocalComponents.registerComponent(ComponentId.Speed, _SpeedStore);
+LocalComponents.registerComponent<TransformType>(ComponentId.Transform, _TransformStore);
+LocalComponents.registerComponent<VelocityType>(ComponentId.Velocity, _VelocityStore);
+LocalComponents.registerComponent<SpriteType>(ComponentId.Sprite, _SpriteStore);
+LocalComponents.registerComponent<ChunkType>(ComponentId.Chunk, _ChunkStore);
+LocalComponents.registerComponent<NetworkType>(ComponentId.Network, _NetworkStore);
+LocalComponents.registerComponent<DirectionType>(ComponentId.Direction, _DirectionStore);
+LocalComponents.registerComponent<InputType>(ComponentId.Input, _InputStore);
+LocalComponents.registerComponent<SpeedType>(ComponentId.Speed, _SpeedStore);
 
 // Eventos do client ================================
 socket.on('playerStart', (data: {ip: string, entityId: number}) => {
@@ -58,11 +67,11 @@ socket.on('playerData', (serverData:any) => {
 });
 socket.on('fullEntities', (fullSnapshot: any[]) => {
     applyDelta(fullSnapshot);
-    console.log(fullSnapshot);
+    //console.log(fullSnapshot);
 });
 socket.on('deltaEntities', (delta: any[]) => {
-    console.log(delta);
-    //applyDelta(delta);
+    applyDelta(delta);
+    //console.log(delta);
 });
 
 // Metodos do client ================================
@@ -83,24 +92,28 @@ export const sendInput = (pressed: number, clicked: number) => {
 // Funções locais ===================================
 function applyDelta(delta: any[]) {
     if(!Array.isArray(delta) || delta.length === 0) return;
-    console.log("delta pego: ", delta, LocalEntities)
+    console.log("delta pego: ", ...delta, LocalComponents.entityMasks)
 
     for (const change of delta) {
         const {id, $removed, ...components} = change;
-
+        console.log('debug', id);
+        
         if ($removed) {
             LocalEntities.destroy(id);
             continue;
         }
-
+        
         LocalEntities.ensure(id);
-
+        
         for(const compIdStr in components) {
             const compId = Number(compIdStr);
             const data = components[compId];
 
             if (data === null) {
-                LocalComponents.removeComponent(compId, id);
+                if(LocalComponents.hasComponent(compId, id)) {
+                    LocalComponents.removeComponent(compId, id);
+                    
+                }
             } else {
                 if(!LocalComponents.hasComponent(compId, id)) {
                     LocalComponents.addComponent(compId, id);
