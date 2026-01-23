@@ -10,7 +10,7 @@ import { EntityManager } from "../../shared/ECS/entityManager.js";
 import { ComponentManager } from "../../shared/ECS/componentManager.js";
 import { networkMovementSystem } from "../ECS/networkMovementSystem.js";
 import { TransformStore } from "../../shared/ECS/components/transformStore.js";
-import { ChunkType, ComponentId, InputType, NetworkType, SpriteType, TransformType, VelocityType } from "../../shared/types/components.js";
+import { ChunkType, ComponentId, DirectionType, InputType, NetworkType, SpeedType, SpriteType, TransformType, VelocityType } from "../../shared/types/components.js";
 import { VelocityStore } from "../../shared/ECS/components/velocityStore.js";
 import { SpriteStore } from "../../shared/ECS/components/spriteStore.js";
 import { networkChunkLocationSystem } from "../ECS/networkChunkLocationSystem.js";
@@ -19,6 +19,10 @@ import { NetworkStore } from "../../shared/ECS/components/networkStore.js";
 import { InputStore } from "../../shared/ECS/components/inputStore.js";
 import { networkAoiSystem } from "../ECS/networkAoiSystem.js";
 import { MIN_CHUNK_RADIUS } from "../../shared/constants.js";
+import { networkInputSystem } from "../ECS/networkInputSystem.js";
+import { networkSpeedSystem } from "../ECS/networkSpeedSystem.js";
+import { SpeedStore } from "../../shared/ECS/components/speedStore.js";
+import { DirectionStore } from "../../shared/ECS/components/directionStore.js";
 
 const app = express();
 const server = createServer(app);
@@ -42,6 +46,8 @@ const _SpriteStore = new SpriteStore();
 const _ChunkStore = new ChunkStore();
 const _NetworkStore = new NetworkStore();
 const _InputStore = new InputStore();
+const _DirectionStore = new DirectionStore();
+const _SpeedStore = new SpeedStore();
 
 NetworkComponents.registerComponent<TransformType>(ComponentId.Transform, _TransformStore);
 NetworkComponents.registerComponent<VelocityType>(ComponentId.Velocity, _VelocityStore);
@@ -49,6 +55,8 @@ NetworkComponents.registerComponent<SpriteType>(ComponentId.Sprite, _SpriteStore
 NetworkComponents.registerComponent<ChunkType>(ComponentId.Chunk, _ChunkStore);
 NetworkComponents.registerComponent<NetworkType>(ComponentId.Network, _NetworkStore);
 NetworkComponents.registerComponent<InputType>(ComponentId.Input, _InputStore);
+NetworkComponents.registerComponent<DirectionType>(ComponentId.Direction, _DirectionStore);
+NetworkComponents.registerComponent<SpeedType>(ComponentId.Speed, _SpeedStore);
 
 // Diretórios
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
@@ -91,9 +99,17 @@ io.on('connection', (socket) => {
   NetworkComponents.addComponent(ComponentId.Chunk, clientEntityId);
   NetworkComponents.addComponent(ComponentId.Network, clientEntityId);
   NetworkComponents.addComponent(ComponentId.Input, clientEntityId);
+  NetworkComponents.addComponent(ComponentId.Direction, clientEntityId);
+  NetworkComponents.addComponent(ComponentId.Speed, clientEntityId);
 
-
+  ///////
   socket.emit("playerStart", {ip: clientIp, entityId: clientEntityId});
+  
+  const storeSpeed = NetworkComponents.getStore<SpeedStore>(ComponentId.Speed);
+  const indexSpeed = storeSpeed.indexOf(clientEntityId);
+  storeSpeed.acceleration[indexSpeed] = 1;
+  storeSpeed.topSpeed[indexSpeed] = 5;
+  storeSpeed.friction[indexSpeed] = 0.15;
 
   io.emit("fullEntities", NetworkEntities.getSnapShot() );
 
@@ -144,6 +160,8 @@ io.on('connection', (socket) => {
 
 // Update loop (Lógica do servidor)
 setInterval(() => {
+  networkInputSystem(NetworkComponents);
+  networkSpeedSystem(NetworkComponents);
   networkMovementSystem(NetworkComponents);
   networkChunkLocationSystem(NetworkComponents, NetworkWorld, LocalChunkEntities);
   networkAoiSystem(NetworkComponents, Clients, LocalChunkEntities, GlobalEntities);
@@ -154,6 +172,7 @@ setInterval(() => {
   const delta = NetworkEntities.getDelta();
 
   if (delta.length > 0) {
+    //console.log(delta);
     io.emit("deltaEntities", delta );
   } 
 }, 30);

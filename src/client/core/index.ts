@@ -3,12 +3,15 @@ import { Renderer } from "../rendering/render.js";
 import { GameTime } from "./gameTime.js";
 import { InputHandler } from "./inputHandler.js";
 import { TileMap } from "../world/tilemapHandler.js";
-import { localPlayers, requestChunks, testeNet } from "../network/socket.js";
+import { LocalComponents, PlayerLocalEntity, requestChunks, testeNet } from "../network/socket.js";
 import { CHUNK_SIZE, PLAYER, TILE_SIZE } from "../../shared/constants.js";
 import { WorldRender } from "../rendering/worldRender.js";
 import { Camera } from "../rendering/camera.js";
 import { EntityRender } from "../rendering/entityRender.js";
 import { Controller } from "./controller.js";
+import { localRenderingSystem } from "../ECS/localRenderingSystem.js";
+import { ComponentId, TransformType } from "../../shared/types/components.js";
+import { TransformStore } from "../../shared/ECS/components/transformStore.js";
 
 console.log('Hello world');
 
@@ -28,8 +31,8 @@ const centerScreen = {
 
 const canvas = document.getElementById("game") as HTMLCanvasElement;
 const Player = {
-    x: Math.floor(windowSize.w / 2),
-    y: Math.floor(windowSize.h / 2),
+    x: 0,
+    y: 0,
     w: PLAYER.WIDTH,
     h: PLAYER.HEIGHT,
     chunk: {x: 0, y: 0},
@@ -80,6 +83,10 @@ function unloadFarChunks(centerChunkX:number, centerChunkY:number) {
     }
 }
 
+// Stores ========================
+const storeTransform = LocalComponents.getStore<TransformStore>(ComponentId.Transform);
+
+
 // Game start
 function gameStart() {
     // Renderização do canvas
@@ -115,10 +122,12 @@ function gameUpdate() {
     GameTime.Update();
     Controller.Update();
 
-    /* if(myPlayer) {
-        Player.x = myPlayer.Movement.pos.x;
-        Player.y = myPlayer.Movement.pos.y;
-    } */
+    if(PlayerLocalEntity !== undefined) {
+        const myIndex = storeTransform.indexOf(PlayerLocalEntity);
+
+        Player.x = storeTransform.posX[myIndex];
+        Player.y = storeTransform.posY[myIndex];
+    }
 
     const WorldX = Math.floor(Player.x / TILE_SIZE);
     const WorldY = Math.floor(Player.y / TILE_SIZE);
@@ -146,9 +155,7 @@ function gameRender() {
 
     // Render
     WorldRender.render();
-    localPlayers.forEach((player) => {
-        EntityRender.render(player.Movement.pos.x, player.Movement.pos.y, Player.w, Player.h, player.Stats.color);
-    });
+    localRenderingSystem(LocalComponents);
 }
 
 // =============================

@@ -2,7 +2,7 @@
 import { ComponentManager } from "../../shared/ECS/componentManager.js";
 import { DirectionStore } from "../../shared/ECS/components/directionStore.js";
 import { InputStore } from "../../shared/ECS/components/inputStore.js";
-import { ComponentId, InputMap } from "../../shared/types/components";
+import { ComponentId, InputMap } from "../../shared/types/components.js";
 
 export function networkInputSystem(manager: ComponentManager) {
     const mask = ComponentId.Input | ComponentId.Direction;

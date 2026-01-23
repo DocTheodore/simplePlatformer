@@ -16,8 +16,6 @@ declare const io:any;
 
 export const socket = io(); // Conexão
 export let myIp = '';
-export let myEntityId: number | undefined = undefined;
-export let localPlayers = new Map<string, any>();
 
 export const LocalComponents = new ComponentManager();
 export const LocalEntities = new EntityManager(LocalComponents);
@@ -62,8 +60,7 @@ socket.on('chunkData', ({ xChunk, yChunk, tiles }: { xChunk: number, yChunk: num
     //console.log(TileMap.chunks);
 });
 socket.on('playerData', (serverData:any) => {
-    const data = serverData;
-    localPlayers = new Map(Object.entries(data));
+    //const data = serverData;
 });
 socket.on('fullEntities', (fullSnapshot: any[]) => {
     applyDelta(fullSnapshot);
@@ -92,11 +89,11 @@ export const sendInput = (pressed: number, clicked: number) => {
 // Funções locais ===================================
 function applyDelta(delta: any[]) {
     if(!Array.isArray(delta) || delta.length === 0) return;
-    console.log("delta pego: ", ...delta, LocalComponents.entityMasks)
+    //console.log("delta pego: ", ...delta, LocalComponents.entityMasks)
 
     for (const change of delta) {
         const {id, $removed, ...components} = change;
-        console.log('debug', id);
+        //console.log('debug', id);
         
         if ($removed) {
             LocalEntities.destroy(id);

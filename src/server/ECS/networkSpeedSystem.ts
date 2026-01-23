@@ -32,8 +32,8 @@ export function networkSpeedSystem(manager: ComponentManager) {
         const currentVelX = storeVelocity.velX[indexVel];
         const currentVelY = storeVelocity.velY[indexVel]; // Só para debbug
 
-        const canAccel = (dirX > 0 && currentVelX < topSpeed) || (dirX < 0 && currentVelX > topSpeed);
-        const canAccelDebbug = (dirX > 0 && currentVelX < topSpeed) || (dirX < 0 && currentVelX > topSpeed);
+        const canAccel = (dirX > 0 && currentVelX < topSpeed) || (dirX < 0 && currentVelX > -topSpeed);
+        const canAccelDebbug = (dirY > 0 && currentVelY < topSpeed) || (dirY < 0 && currentVelY > -topSpeed);
 
         // Mudar a velocidade conforme a direção
         if(dirX) {
