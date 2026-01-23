@@ -1,4 +1,4 @@
-//src/server/ECS/localRenderingSystem.ts
+//src/client/ECS/localRenderingSystem.ts
 import { ComponentManager } from "../../shared/ECS/componentManager.js";
 import { TransformStore } from "../../shared/ECS/components/transformStore.js";
 import { ComponentId } from "../../shared/types/components.js";

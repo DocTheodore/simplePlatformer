@@ -7,7 +7,7 @@ import { VelocityStore } from "../../shared/ECS/components/velocityStore.js";
 import { ComponentId } from "../../shared/types/components.js";
 
 export function networkSpeedSystem(manager: ComponentManager) {
-    const mask = ComponentId.Direction | ComponentId.Velocity | ComponentId.Speed; // Talvez Um componente de aceleração? estatisticas com aceleração e velocidade maxima??
+    const mask = ComponentId.Direction | ComponentId.Velocity | ComponentId.Speed; 
     const entities = manager.query(mask, ComponentId.Speed);
 
     const storeDirection = manager.getStore<DirectionStore>(ComponentId.Direction);

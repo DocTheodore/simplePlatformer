@@ -12,7 +12,7 @@ export class ComponentManager {
 
     addComponent(componentId: number, entity: number) {
         const store = this.stores.get(componentId);
-        if (!store) throw Error('Componente não registrado');
+        if (!store) throw Error(`Componente não registrado: [${componentId}]`);
 
         store.add(entity);
 

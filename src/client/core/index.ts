@@ -12,6 +12,9 @@ import { Controller } from "./controller.js";
 import { localRenderingSystem } from "../ECS/localRenderingSystem.js";
 import { ComponentId, TransformType } from "../../shared/types/components.js";
 import { TransformStore } from "../../shared/ECS/components/transformStore.js";
+import { localInputSystem } from "../ECS/localInputSystem.js";
+import { localSpeedSystem } from "../ECS/localSpeedSystem.js";
+import { localMovementSystem } from "../ECS/localMovementSystem.js";
 
 console.log('Hello world');
 
@@ -123,6 +126,10 @@ function gameUpdate() {
     Controller.Update();
 
     if(PlayerLocalEntity !== undefined) {
+        localInputSystem(LocalComponents);
+        localSpeedSystem(LocalComponents);
+        localMovementSystem(LocalComponents);
+
         const myIndex = storeTransform.indexOf(PlayerLocalEntity);
 
         Player.x = storeTransform.posX[myIndex];
